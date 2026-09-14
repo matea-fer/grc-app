@@ -1,0 +1,430 @@
+<div class="screen">
+  <h2>Podaci</h2>
+
+  @if (activeCompanyId() === null) {
+    <p class="empty-state">Odaberi firmu u gornjoj traci da bi vidio i unosio njezine zapise.</p>
+  } @else {
+    <label class="template-picker">
+      <span>Obrazac:</span>
+      <select [ngModel]="activeTemplateId()" (ngModelChange)="onTemplateChange($event)">
+        <option [ngValue]="null">— odaberi obrazac —</option>
+        @for (template of templates(); track template.id) {
+          <option [ngValue]="template.id">{{ template.name }}</option>
+        }
+      </select>
+    </label>
+
+    @if (activeTemplateId() === null) {
+      <p class="empty-state">
+        @if (templates().length === 0) {
+          Ova firma još nema obrazaca. Otvori „Editor obrazaca” i dodaj prvi.
+        } @else {
+          Odaberi obrazac da bi vidio i unosio njegove zapise.
+        }
+      </p>
+    } @else {
+    <div class="toolbar">
+      <!-- Pretragu radi baza, pa se filtri zadaju kao uvjeti, a ne kao jedno polje. Više
+           uvjeta SUŽAVA rezultat (spojeni su s I) - "grad = Zagreb i status = otvoren". -->
+      <button type="button" class="filter-add-button" (click)="addFilter()">+ Filtar</button>
+
+      @if (columns().length > 0) {
+        <button type="button" class="add-toggle-button" (click)="openAddDialog()">+ Dodaj zapis</button>
+      }
+    </div>
+
+    @if (filters().length > 0) {
+      <div class="filter-rows">
+        @for (filter of filters(); track $index) {
+          <div class="filter-row">
+            <select class="filter-select" [ngModel]="filter.column" (ngModelChange)="setFilterColumn($index, $event)">
+              @for (field of filterableFields(); track field.key) {
+                <option [value]="field.key">{{ field.label }}</option>
+              }
+            </select>
+            @if (filterField(filter.column); as field) {
+              @if (field.type === 'reference') {
+                <!-- Veza se traži po TOČNOM zapisu, odabranom iz istog dijaloga kao pri unosu:
+                     nazivom bi se pogađalo, a upisivanjem broja zapisa se ne radi ništa što bi
+                     korisnik htio raditi ručno. -->
+                <button type="button" class="picker-button" (click)="openFilterPicker($index)">
+                  @if (filter.value === '') {
+                    <span class="field-hint">-- odaberi zapis --</span>
+                  } @else {
+                    <span class="chip">{{ filterRecordLabel(filter.column, filter.value) }}</span>
+                  }
+                </button>
+
+                @if (filterPickerIndex() === $index && field.options.targetTemplateId !== null) {
+                  <app-record-picker-dialog
+                    [templateId]="field.options.targetTemplateId!"
+                    [displayKey]="field.options.displayColumnKey ?? ''"
+                    [selected]="filter.value === '' ? [] : [+filter.value]"
+                    [title]="'Filtar: ' + field.label"
+                    (confirmed)="setFilterRecord($index, $event)"
+                    (closed)="filterPickerIndex.set(null)"
+                  />
+                }
+              } @else {
+                <!-- šifrarnički stupac se traži po NAZIVU koji korisnik vidi; prijevod u šifru
+                     radi server -->
+                <input
+                  type="text"
+                  class="search-input"
+                  placeholder="sadrži..."
+                  [ngModel]="filter.value"
+                  (ngModelChange)="setFilterValue($index, $event)"
+                />
+              }
+            }
+            <button type="button" class="icon-button" title="Ukloni filtar" (click)="removeFilter($index)">✕</button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ===================== DIJALOG: NOVI ZAPIS ===================== -->
+    @if (showAddDialog()) {
+      <div class="modal-backdrop" (click)="closeAddDialog()">
+        <!-- klik unutar dijaloga ne smije doprijeti do pozadine i zatvoriti ga -->
+        <div class="survey-form-card modal-dialog" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Novi zapis</h3>
+            <button type="button" class="icon-button" title="Zatvori" (click)="closeAddDialog()">✕</button>
+          </div>
+          <!-- Radnje stoje GORE DESNO, iznad polja: obrazac zna imati tridesetak stupaca, pa
+               bi se do gumba na dnu moralo pomicati da bi se uopće vidio. -->
+          <div class="form-actions">
+            <button type="button" class="secondary" (click)="closeAddDialog()">Odustani</button>
+            <button type="button" class="primary" (click)="submitAdd()">Spremi zapis</button>
+          </div>
+          @if (dialogError()) {
+            <p class="error dialog-error">{{ dialogError() }}</p>
+          }
+          <div class="form-grid">
+            @for (field of fields(); track field.key) {
+              @if (field.type === 'file') {
+                <!-- prilog se veže uz zapis, a njega prije spremanja nema; ćelija to sama
+                     objasni kad joj surveyId dođe kao null -->
+                <div class="form-field">
+                  <span class="form-field-label">{{ field.label }}</span>
+                  <app-attachment-cell
+                    [templateId]="activeTemplateId()!"
+                    [surveyId]="null"
+                    [field]="field"
+                  />
+                </div>
+              } @else if (field.readOnly) {
+                <div class="form-field">
+                  <span class="form-field-label">{{ field.label }}</span>
+                  <span class="form-field-static">{{ readOnlyPreview(field, addValues()) }}</span>
+                </div>
+              } @else {
+                <label class="form-field">
+                  <span class="form-field-label">{{ field.label }}{{ field.required ? ' *' : '' }}</span>
+                  <app-field-input
+                    [field]="field"
+                    [value]="addValues()[field.key]"
+                    (valueChange)="updateAddValue(field.key, $event)"
+                  />
+                </label>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ===================== DIJALOG: UREĐIVANJE ===================== -->
+    @if (editingSurvey(); as editSurvey) {
+      <div class="modal-backdrop" (click)="cancelEdit()">
+        <div class="survey-form-card modal-dialog" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Uredi zapis</h3>
+            <button type="button" class="icon-button" title="Zatvori" (click)="cancelEdit()">✕</button>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="secondary" (click)="cancelEdit()">Odustani</button>
+            <button type="button" class="primary" (click)="submitEdit(editSurvey)">Spremi izmjene</button>
+          </div>
+          @if (dialogError()) {
+            <p class="error dialog-error">{{ dialogError() }}</p>
+          }
+          <div class="form-grid">
+            @for (field of fields(); track field.key) {
+              @if (field.type === 'file') {
+                <div class="form-field">
+                  <span class="form-field-label">{{ field.label }}</span>
+                  <app-attachment-cell
+                    [templateId]="activeTemplateId()!"
+                    [surveyId]="editSurvey.id"
+                    [field]="field"
+                    [attachments]="attachmentsFor(editSurvey.id, field.key)"
+                    (changed)="onAttachmentsChanged()"
+                  />
+                </div>
+              } @else if (field.readOnly) {
+                <div class="form-field">
+                  <span class="form-field-label">{{ field.label }}</span>
+                  <span class="form-field-static">{{ readOnlyPreview(field, editValues()) }}</span>
+                </div>
+              } @else {
+                <label class="form-field">
+                  <span class="form-field-label">{{ field.label }}{{ field.required ? ' *' : '' }}</span>
+                  <app-field-input
+                    [field]="field"
+                    [value]="editValues()[field.key]"
+                    (valueChange)="updateEditValue(field.key, $event)"
+                  />
+                </label>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (loading()) {
+      <p>Učitavanje...</p>
+    } @else {
+      <!-- greška stoji IZNAD tablice, a ne umjesto nje: neuspjelo spremanje ne smije
+           odnijeti sa zaslona podatke koje korisnik upravo ispravlja -->
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+      <!-- redak u izradi je pretijesan za poruku, pa i njegova stoji ovdje - ali nestaje
+           zajedno s njim, jer nakon odustajanja nema na što se odnositi -->
+      @if (inlineError()) {
+        <p class="error">{{ inlineError() }}</p>
+      }
+
+      <!-- Suženje na jedan zapis (dolazak iz dijaloga „Povezani zapisi"). Traka mora stajati
+           iznad tablice: bez nje tablica s jednim retkom izgleda kao obrazac koji je ostao
+           bez podataka, a put natrag se ne vidi. -->
+      @if (focusIds().length > 0) {
+        <div class="focus-bar">
+          <span>{{ focusNote() }}</span>
+          <button type="button" class="focus-clear" (click)="clearFocus()">Prikaži sve zapise</button>
+        </div>
+      }
+
+      @if (columns().length === 0) {
+        <p class="empty-state">
+          Ovaj obrazac još nema definiranih stupaca. Otvori „Editor obrazaca” i definiraj shemu, pa se vrati ovdje.
+        </p>
+      } @else {
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="actions-col"></th>
+              @for (field of fields(); track field.key) {
+                <!-- širina se zadaje u zaglavlju: ćelije ispod je preuzimaju same, pa ne
+                     mora stajati na svakom retku. Klik sortira (uzlazno → silazno → bez
+                     sortiranja); stupci bez vrijednosti se ne daju sortirati. -->
+                <th
+                  [style.width.px]="field.width"
+                  [class.sortable]="isSortable(field)"
+                  [title]="sortTitle(field)"
+                  (click)="toggleSort(field)"
+                >{{ field.label }}{{ field.required ? ' *' : '' }}@if (isSortable(field)) {
+                  <span class="sort-mark" [class.sort-mark-active]="sortBy() === field.key">{{ sortMark(field) }}</span>
+                }</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (survey of surveys(); track survey.id) {
+              <tr [class.locked-row]="survey.locked">
+                <td>
+                  <div class="row-icon-actions">
+                    <!-- zaključan zapis se ne uređuje ni ne briše; dodavanje NOVOG retka ispod
+                         njega je druga stvar i ostaje dopušteno -->
+                    <button
+                      type="button"
+                      class="icon-button icon-edit"
+                      [title]="survey.locked ? lockedTitle(survey) : 'Uredi'"
+                      [disabled]="survey.locked"
+                      (click)="startEdit(survey)"
+                    >✎</button>
+                    <button
+                      type="button"
+                      class="icon-button icon-delete"
+                      [title]="survey.locked ? lockedTitle(survey) : 'Obriši'"
+                      [disabled]="survey.locked"
+                      (click)="deleteSurvey(survey)"
+                    >✕</button>
+                    <button type="button" class="icon-button icon-add" title="Dodaj redak ispod" (click)="startInlineAdd(survey)">+</button>
+                    @if (survey.locked) {
+                      <span class="lock-mark" [title]="lockedTitle(survey)">🔒</span>
+                    }
+                  </div>
+                </td>
+                @for (field of fields(); track field.key) {
+                  <td>
+                    @if (field.type === 'file') {
+                      <app-attachment-cell
+                        [templateId]="activeTemplateId()!"
+                        [surveyId]="survey.id"
+                        [field]="field"
+                        [attachments]="attachmentsFor(survey.id, field.key)"
+                        [locked]="survey.locked"
+                        (changed)="onAttachmentsChanged()"
+                      />
+                    } @else if (field.type === 'button') {
+                      <!-- natpis, onemogućenost i opis ovise i o stupcu i o retku (gumb koji
+                           zaključava mijenja smjer), pa ih računa komponenta -->
+                      <button
+                        type="button"
+                        class="cell-button"
+                        [class.cell-button-locked]="field.options.buttonAction === 'lock' && survey.locked"
+                        [title]="survey.locked ? lockedTitle(survey) : ''"
+                        [disabled]="cellButtonDisabled(field, survey)"
+                        (click)="onCellButton(field, survey)"
+                      >
+                        {{ cellButtonLabel(field, survey) }}
+                      </button>
+                    } @else if (field.type === 'link') {
+                      <!-- U ćeliji stoji samo gumb s brojem: poveznica je duga i nosi naziv,
+                           pa bi tri od njih raznijele visinu retka. Broj je ondje da se ne
+                           mora otvarati dijalog da bi se vidjelo ima li ih uopće. -->
+                      <button
+                        type="button"
+                        class="cell-button"
+                        [title]="linkCount(field, survey) === 0 ? 'Još nema nijedne poveznice' : ''"
+                        (click)="openLinks(field, survey)"
+                      >
+                        {{ field.options.buttonLabel || field.label }}
+                        @if (linkCount(field, survey) > 0) {
+                          <span class="cell-button-count">{{ linkCount(field, survey) }}</span>
+                        }
+                      </button>
+                    } @else if (field.type === 'reference') {
+                      <!-- U zapisu stoji id, a prikazuje se naziv iz ciljanog obrasca. Čipovi
+                           i kod jedne veze: veza je zapis, a ne upisana vrijednost, pa se i
+                           čita drukčije od običnog teksta. -->
+                      @for (name of referenceLabels(field, survey.data[field.key]); track $index) {
+                        <span class="chip">{{ name }}</span>
+                      } @empty {
+                        -
+                      }
+                    } @else if (isMulti(field)) {
+                      <!-- više vrijednosti se čita kao popis, a ne kao jedan dugačak niz
+                           razdvojen zarezima -->
+                      @for (name of codeLabels(field, survey.data[field.key]); track name) {
+                        <span class="chip">{{ name }}</span>
+                      } @empty {
+                        -
+                      }
+                    } @else {
+                      {{ displayValue(field, survey.data[field.key]) }}
+                    }
+                  </td>
+                }
+              </tr>
+
+              <!-- prazan redak za izravan unos, odmah ispod onog pored kojeg se krenulo -->
+              @if (inlineAfterId() === survey.id) {
+                <tr class="inline-add-row">
+                  <td>
+                    <div class="row-icon-actions">
+                      <button type="button" class="icon-button icon-edit" title="Spremi redak" (click)="submitInlineAdd()">✓</button>
+                      <button type="button" class="icon-button" title="Odustani" (click)="cancelInlineAdd()">✕</button>
+                    </div>
+                  </td>
+                  @for (field of fields(); track field.key) {
+                    <td>
+                      @if (field.type === 'file') {
+                        <!-- redak još nije spremljen, pa prilog nema uz što stajati -->
+                        <span class="field-hint">Nakon spremanja</span>
+                      } @else if (field.readOnly) {
+                        <span class="readonly-cell">{{ readOnlyPreview(field, inlineValues()) }}</span>
+                      } @else {
+                        <app-field-input
+                          [field]="field"
+                          [value]="inlineValues()[field.key]"
+                          (valueChange)="updateInlineValue(field.key, $event)"
+                        />
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            } @empty {
+              <tr>
+                <td [attr.colspan]="1 + columns().length">Nema zapisa za zadani upit.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Traka stranica. Ukupan broj dolazi sa servera (COUNT uz upit), pa se vidi koliko
+           zapisa uopće ima - a ne samo koliko ih je na ovoj stranici. -->
+      @if (totalElements() > 0) {
+        <div class="pager">
+          <span class="pager-range">{{ rangeFrom() }}–{{ rangeTo() }} od {{ totalElements() }}</span>
+
+          @if (totalPages() > 1) {
+            <button type="button" class="pager-button" [disabled]="page() === 0" (click)="goToPage(page() - 1)">‹</button>
+            @for (number of pageNumbers(); track $index) {
+              @if (number === null) {
+                <span class="pager-gap">…</span>
+              } @else {
+                <button
+                  type="button"
+                  class="pager-button"
+                  [class.pager-current]="number === page()"
+                  (click)="goToPage(number)"
+                >{{ number + 1 }}</button>
+              }
+            }
+            <button
+              type="button"
+              class="pager-button"
+              [disabled]="page() >= totalPages() - 1"
+              (click)="goToPage(page() + 1)"
+            >›</button>
+          }
+        </div>
+      }
+      }
+    }
+    }
+  }
+
+  <!-- Izvan tablice: dijalog pripada zapisu, ali ne i ćeliji iz koje je otvoren. Unutar
+       ćelije bi ga njezino prelijevanje moglo odrezati. -->
+  @if (historySurveyId(); as surveyId) {
+    <app-record-history-dialog
+      [templateId]="activeTemplateId()!"
+      [surveyId]="surveyId"
+      (closed)="closeHistory()"
+    />
+  }
+
+  <!-- Povezani zapisi: sadržaj se dohvaća tek kad se dijalog otvori, pa uz tablicu ne
+       stoji nijedan dodatni upit. Ništa se ne prosljeđuje osim zapisa - tko na njega
+       pokazuje, server izvede iz shema. -->
+  @if (relatedFor(); as related) {
+    <app-related-records-dialog
+      [templateId]="activeTemplateId()!"
+      [recordId]="related.surveyId"
+      [title]="related.field.options.buttonLabel || related.field.label"
+      (opened)="openRelatedRecord($event)"
+      (closed)="closeRelated()"
+    />
+  }
+
+  <!-- Poveznice zapisa. Dijalog ne zna ništa o spremanju - vrijednost prima i vraća, a
+       sprema je ekran, jer se dijalog otvara iz retka koji se ne uređuje. -->
+  @if (linksFor(); as open) {
+    <app-record-links-dialog
+      [title]="open.field.options.buttonLabel || open.field.label"
+      [links]="shownLinks()"
+      [readOnly]="isLocked(open.surveyId)"
+      (changed)="saveLinks($event)"
+      (closed)="closeLinks()"
+    />
+  }
+</div>

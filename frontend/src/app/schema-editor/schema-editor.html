@@ -1,0 +1,650 @@
+<div class="screen">
+  <h2>Editor obrazaca</h2>
+
+  @if (activeCompanyId() === null) {
+    <p class="empty-state">Odaberi firmu u gornjoj traci da bi uređivao njezine obrasce.</p>
+  } @else {
+    <p class="screen-intro">Firma može imati više obrazaca (templatea); svaki nosi svoje stupce i svoje zapise.</p>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    @if (success()) {
+      <p class="success">{{ success() }}</p>
+    }
+
+    <!-- ===================== OBRASCI ===================== -->
+    <div class="toolbar">
+      <button type="button" class="add-toggle-button" (click)="openTemplateDialog()">+ Dodaj obrazac</button>
+      <!-- Postoji uz ikonu ✕ u retku: par obrazaca koji pokazuju jedan na drugoga se
+           pojedinacno ne da obrisati nijednim redoslijedom. -->
+      @if (templates().length > 0) {
+        <button type="button" class="small-button secondary" (click)="showBulkDelete.set(true)">
+          Obriši više obrazaca
+        </button>
+      }
+    </div>
+
+    @if (showBulkDelete()) {
+      <app-bulk-delete-dialog
+        [templates]="templates()"
+        (deleted)="onBulkDeleted($event)"
+        (closed)="showBulkDelete.set(false)"
+      />
+    }
+
+    @if (showTemplateDialog()) {
+      <div class="modal-backdrop" (click)="closeTemplateDialog()">
+        <!-- klik unutar dijaloga ne smije doprijeti do pozadine i zatvoriti ga -->
+        <div class="survey-form-card modal-dialog" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Novi obrazac</h3>
+            <button type="button" class="icon-button" title="Zatvori" (click)="closeTemplateDialog()">✕</button>
+          </div>
+          <!-- Radnje stoje GORE DESNO, iznad polja: dijalog se ne mora prolistati do dna da bi
+               se vidjelo čime se potvrđuje. Kod dijaloga stupca, koji je dugačak, to je razlika
+               između vidljivog gumba i onog do kojeg se mora pomicati. -->
+          <div class="form-actions">
+            <button type="button" class="secondary" (click)="closeTemplateDialog()">Odustani</button>
+            <button type="button" class="primary" (click)="addTemplate()">Dodaj obrazac</button>
+          </div>
+          @if (dialogError()) {
+            <p class="error dialog-error">{{ dialogError() }}</p>
+          }
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-field-label">Naziv obrasca</span>
+              <input
+                type="text"
+                [ngModel]="newTemplateName()"
+                (ngModelChange)="newTemplateName.set($event)"
+                (keyup.enter)="addTemplate()"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="actions-col"></th>
+            <th>Obrazac</th>
+            <th>Aktivan</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (template of templates(); track template.id) {
+            <tr [class.selected-row]="activeTemplateId() === template.id">
+              <td>
+                <div class="row-icon-actions">
+                  @if (editingTemplateId() === template.id) {
+                    <button type="button" class="icon-button icon-edit" title="Spremi" (click)="saveTemplateEdit(template.id)">✓</button>
+                    <button type="button" class="icon-button" title="Odustani" (click)="cancelTemplateEdit()">✕</button>
+                  } @else {
+                    <button type="button" class="icon-button icon-edit" title="Preimenuj" (click)="startEditTemplate(template)">✎</button>
+                    <button type="button" class="icon-button icon-delete" title="Obriši" (click)="removeTemplate(template)">✕</button>
+                  }
+                </div>
+              </td>
+              <td>
+                @if (editingTemplateId() === template.id) {
+                  <input
+                    type="text"
+                    [ngModel]="editTemplateName()"
+                    (ngModelChange)="editTemplateName.set($event)"
+                    (keyup.enter)="saveTemplateEdit(template.id)"
+                  />
+                } @else {
+                  <button type="button" class="link-button" (click)="selectTemplate(template.id)">{{ template.name }}</button>
+                }
+              </td>
+              <td>
+                @if (activeTemplateId() === template.id) {
+                  <span class="active-badge">aktivan</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3">Ova firma još nema obrazaca. Dodaj prvi gumbom iznad.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===================== STUPCI ODABRANOG OBRASCA ===================== -->
+    @if (activeTemplateId() === null) {
+      <p class="empty-state">Odaberi ili dodaj obrazac da bi uređivao njegove stupce.</p>
+    } @else {
+      <h3 class="section-heading">Stupci obrasca „{{ activeTemplateName() }}”</h3>
+
+      <div class="toolbar">
+        <button type="button" class="add-toggle-button" (click)="openColumnDialog()">+ Dodaj stupac</button>
+      </div>
+
+      @if (showColumnDialog()) {
+      <div class="modal-backdrop" (click)="closeColumnDialog()">
+        <!-- klik unutar dijaloga ne smije doprijeti do pozadine i zatvoriti ga -->
+        <div class="survey-form-card modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editingKey() === null ? 'Novi stupac' : 'Uredi stupac „' + editingKey() + '”' }}</h3>
+          <button type="button" class="icon-button" title="Zatvori" (click)="closeColumnDialog()">✕</button>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="secondary" (click)="closeColumnDialog()">Odustani</button>
+          <button type="button" class="primary" (click)="submit()">{{ editingKey() === null ? 'Dodaj stupac' : 'Spremi izmjene' }}</button>
+        </div>
+        @if (editingKey() !== null) {
+          <p class="screen-intro">Spremanjem se zapisi ovog obrasca migriraju: preimenovanje mijenja ključ u svim zapisima, a promjena tipa čisti vrijednosti koje mu ne odgovaraju.</p>
+        }
+        @if (dialogError()) {
+          <p class="error dialog-error">{{ dialogError() }}</p>
+        }
+        <div class="form-grid">
+          <label class="form-field">
+            <span class="form-field-label">Naziv stupca</span>
+            <input type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)" (keyup.enter)="submit()" />
+          </label>
+          <label class="form-field">
+            <span class="form-field-label">Tip</span>
+            <select [ngModel]="newType()" (ngModelChange)="onTypeChange($event)">
+              <option value="string">Tekst</option>
+              <option value="number">Broj</option>
+              <option value="codebook">Iz šifrarnika</option>
+              <option value="link">Poveznice</option>
+              <option value="date">Datum</option>
+              <option value="formula">Formula</option>
+              <option value="button">Gumb</option>
+              <option value="file">Datoteka</option>
+              <option value="reference">Veza na obrazac</option>
+            </select>
+          </label>
+          @if (newType() === 'codebook') {
+            <label class="form-field">
+              <span class="form-field-label">Šifrarnik</span>
+              <select [ngModel]="newCodebookId()" (ngModelChange)="onCodebookChange($event)">
+                <option [ngValue]="null">— odaberi šifrarnik —</option>
+                @for (codebook of codebooks(); track codebook.id) {
+                  <option [ngValue]="codebook.id">
+                    {{ codebook.name }} ({{ codebook.scope === 'GLOBAL' ? 'globalni' : 'firmin' }}, {{ codebook.itemCount }} stavki)
+                  </option>
+                }
+              </select>
+              <!-- vrijednosti se uređuju na ekranu Šifrarnici, ne ovdje: isti popis dijeli
+                   više obrazaca, pa mu mjesto nije u definiciji jednog stupca -->
+              <span class="form-field-hint">
+                Vrijednosti se dodaju na ekranu „Šifrarnici”. Globalni vrijede za sve firme.
+              </span>
+            </label>
+          }
+          <label class="form-field">
+            <span class="form-field-label">Label (naziv za korisnika)</span>
+            <input
+              type="text"
+              placeholder="prazno = prikaži naziv stupca"
+              [ngModel]="newLabel()"
+              (ngModelChange)="newLabel.set($event)"
+              (keyup.enter)="submit()"
+            />
+          </label>
+          <label class="form-field">
+            <span class="form-field-label">Širina stupca (px)</span>
+            <input
+              type="number"
+              min="40"
+              max="2000"
+              placeholder="prazno = automatski"
+              [ngModel]="newWidth()"
+              (ngModelChange)="newWidth.set($event)"
+            />
+          </label>
+          @if (!valueless() && newType() !== 'formula' && newType() !== 'link') {
+          <label class="form-field">
+            <span class="form-field-label">Zadana vrijednost</span>
+            @if (newType() === 'codebook') {
+              <!-- šifrarnički stupac sprema ŠIFRU, pa se ona bira, a ne tipka: ručno
+                   upisan naziv stavke backend odbija, i to tek pri spremanju stupca -->
+              <select
+                [ngModel]="newDefaultValue()"
+                (ngModelChange)="newDefaultValue.set($event)"
+                [disabled]="newCodebookId() === null"
+              >
+                <option value="">— bez zadane vrijednosti —</option>
+                @for (item of defaultValueOptions(); track item.code) {
+                  <option [value]="item.code">{{ item.name }} ({{ item.code }})</option>
+                }
+              </select>
+              @if (newCodebookId() === null) {
+                <span class="form-field-hint">Prvo odaberi šifrarnik.</span>
+              } @else if (defaultValueOptions().length === 0) {
+                <span class="form-field-hint">Ovaj šifrarnik još nema aktivnih stavki.</span>
+              }
+            } @else {
+              <input
+                type="text"
+                placeholder="predpopuni se u formi za unos"
+                [ngModel]="newDefaultValue()"
+                (ngModelChange)="newDefaultValue.set($event)"
+                (keyup.enter)="submit()"
+                [disabled]="newAutoIncrement()"
+              />
+            }
+          </label>
+          }
+        </div>
+
+        <!-- ===================== POSTAVKE PO TIPU =====================
+             Prikazuje se samo ono što odabranom tipu pripada. Nije stvar urednosti:
+             backend odbija postavku koja se tipu ne tiče, jer bi inače u shemi ostala
+             tvrdnja koju ništa ne provodi - i oživjela čim se stupcu promijeni tip. -->
+
+        @if (newType() === 'number') {
+          <h4 class="options-heading">Broj</h4>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-field-label">Način prikaza</span>
+              <select
+                [ngModel]="newNumberMode()"
+                (ngModelChange)="newNumberMode.set($event)"
+                [disabled]="newAutoIncrement()"
+              >
+                <option value="float">Decimalni (Float)</option>
+                <option value="int">Cijeli broj (Int)</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="form-field-label">Najmanja vrijednost</span>
+              <input type="number" [ngModel]="newMin()" (ngModelChange)="newMin.set($event)" />
+            </label>
+            <label class="form-field">
+              <span class="form-field-label">Najveća vrijednost</span>
+              <input type="number" [ngModel]="newMax()" (ngModelChange)="newMax.set($event)" />
+            </label>
+            <label class="form-field">
+              <span class="form-field-label">Format prikaza</span>
+              <input
+                type="text"
+                placeholder="npr. #.##0,00"
+                [ngModel]="newNumberFormat()"
+                (ngModelChange)="newNumberFormat.set($event)"
+              />
+              <span class="form-field-hint">Mijenja samo prikaz; u zapisu ostaje broj.</span>
+            </label>
+          </div>
+          <div class="form-flags">
+            <label class="form-field form-field-checkbox">
+              <input
+                type="checkbox"
+                [ngModel]="newAutoIncrement()"
+                (ngModelChange)="onAutoIncrementChange($event)"
+              />
+              <span class="form-field-label">Automatski redni broj</span>
+            </label>
+          </div>
+          @if (newAutoIncrement()) {
+            <p class="form-field-hint options-hint">
+              Broj dodjeljuje server pri spremanju, pa se polje ne unosi. Numeriranje kreće iznad
+              najveće vrijednosti koja je već upisana u ovaj stupac.
+            </p>
+          }
+        }
+
+        @if (newType() === 'string' || newType() === 'number') {
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-field-label">Uzorak (regularni izraz)</span>
+              <input
+                type="text"
+                placeholder="npr. ^\d{5}$"
+                [ngModel]="newPattern()"
+                (ngModelChange)="newPattern.set($event)"
+              />
+              <span class="form-field-hint">Vrijednost mora odgovarati uzorku u cijelosti.</span>
+            </label>
+          </div>
+        }
+
+        @if (newType() === 'date') {
+          <h4 class="options-heading">Datum</h4>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-field-label">Format</span>
+              <select [ngModel]="newDateMode()" (ngModelChange)="newDateMode.set($event)">
+                <option value="date">Datum</option>
+                <option value="datetime">Datum i vrijeme</option>
+              </select>
+            </label>
+          </div>
+        }
+
+        @if (newType() === 'codebook') {
+          <h4 class="options-heading">Odabir iz šifrarnika</h4>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-field-label">Način prikaza</span>
+              <select [ngModel]="newPickerMode()" (ngModelChange)="newPickerMode.set($event)">
+                <option value="dropdown" [disabled]="newMultiple()">Padajući izbornik</option>
+                <option value="checkbox">Potvrdni okviri</option>
+                <option value="popup">Dijalog (popup)</option>
+              </select>
+              <span class="form-field-hint">
+                Dijalog ima tražilicu - za duge šifrarnike.
+              </span>
+            </label>
+          </div>
+          <div class="form-flags">
+            <label class="form-field form-field-checkbox">
+              <input type="checkbox" [ngModel]="newMultiple()" (ngModelChange)="onMultipleChange($event)" />
+              <span class="form-field-label">Više odgovora</span>
+            </label>
+            <label class="form-field form-field-checkbox">
+              <input
+                type="checkbox"
+                [ngModel]="newAllowNewValues()"
+                (ngModelChange)="newAllowNewValues.set($event)"
+              />
+              <span class="form-field-label">Slobodan unos</span>
+            </label>
+          </div>
+          @if (newAllowNewValues()) {
+            <p class="form-field-hint options-hint">
+              Korisnik upisuje vrijednost slobodno, a ona se odmah dodaje u odabrani šifrarnik i
+              vidi se na ekranu „Šifrarnici”. Radi uz sva tri načina prikaza: padajući izbornik
+              postaje polje s ponuđenim popisom, a potvrdni okviri i dijalog dobivaju polje za
+              novu vrijednost uz popis. Radi samo nad šifrarnikom firme — u globalni se ne
+              upisuje, jer bi unos jedne firme mijenjao popis svima.
+            </p>
+          }
+        }
+
+        @if (newType() === 'formula') {
+          <h4 class="options-heading">Formula</h4>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-field-label">Izraz</span>
+              <input
+                type="text"
+                placeholder="npr. [cijena] * [kolicina]"
+                [ngModel]="newFormula()"
+                (ngModelChange)="newFormula.set($event)"
+              />
+              <span class="form-field-hint">
+                Stupac se navodi u uglatim zagradama (jer naziv smije imati razmak). Dopušteni su
+                + - * / i zagrade. Vrijednost računa server pri svakom spremanju zapisa.
+              </span>
+            </label>
+          </div>
+        }
+
+        @if (buttonLike()) {
+          <h4 class="options-heading">{{ optionsHeading() }}</h4>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-field-label">Natpis na gumbu</span>
+              <input
+                type="text"
+                placeholder="npr. Učitaj dokument"
+                [ngModel]="newButtonLabel()"
+                (ngModelChange)="newButtonLabel.set($event)"
+              />
+              @if (newType() === 'file') {
+                <span class="form-field-hint">
+                  Datoteke se prilažu na ekranu „Podaci”, i to tek nakon što je zapis spremljen —
+                  prilog se veže uz zapis, a njega prije spremanja nema.
+                </span>
+              } @else if (newType() === 'link') {
+                <span class="form-field-hint">
+                  U ćeliji stoji gumb s brojem poveznica; klik otvara popis, u kojem se
+                  poveznice i dodaju. Adresu upisuje onaj tko unosi podatke, pa svaki zapis
+                  ima svoje.
+                </span>
+              } @else {
+                <span class="form-field-hint">Stupac ne sprema vlastitu vrijednost — u ćeliji stoji samo gumb.</span>
+              }
+            </label>
+
+            @if (newType() === 'button') {
+              <label class="form-field">
+                <span class="form-field-label">Što gumb radi</span>
+                <select
+                  [ngModel]="newButtonAction()"
+                  (ngModelChange)="newButtonAction.set($event)"
+                >
+                  <option value="history">Povijest promjena retka</option>
+                  <option value="lock">Zaključavanje zapisa</option>
+                  <option value="related">Povezani zapisi</option>
+                </select>
+                @if (newButtonAction() === 'history') {
+                  <span class="form-field-hint">
+                    Otvara popis svih promjena tog retka: kada, tko, koje polje, iz čega u što.
+                    Bilježi se od trenutka kad je zapis nastao.
+                  </span>
+                } @else if (newButtonAction() === 'lock') {
+                  <span class="form-field-hint">
+                    Zaključan zapis se više ne može mijenjati, brisati ni dopunjavati prilozima.
+                    Otključati ga može samo administrator.
+                  </span>
+                } @else {
+                  <!-- Ništa se ne bira: koji stupci na ovaj obrazac pokazuju već piše u
+                       shemama, pa bi upisivanje istoga rukom bilo ponavljanje koje se povrh
+                       svega može razići sa stvarnošću. -->
+                  <span class="form-field-hint">
+                    Otvara sve zapise koji pokazuju NA ovaj zapis — iz bilo kojeg obrasca, npr.
+                    potprocese i rizike ovog procesa. Ništa se ne postavlja; sadržaj se dohvaća
+                    tek na klik.
+                  </span>
+                }
+              </label>
+
+            }
+          </div>
+        }
+
+        @if (newType() === 'reference') {
+          <h4 class="options-heading">Veza na obrazac</h4>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-field-label">Povezani obrazac</span>
+              <select
+                [ngModel]="newTargetTemplateId()"
+                (ngModelChange)="onTargetTemplateChange($event)"
+              >
+                <option [ngValue]="null">— odaberi obrazac —</option>
+                @for (template of templates(); track template.id) {
+                  <option [ngValue]="template.id">{{ template.name }}</option>
+                }
+              </select>
+              <!-- Isti obrazac je dopušten i tražen: proces koji pokazuje na nadređeni proces
+                   upravo tako i izgleda. -->
+              <span class="form-field-hint">
+                U zapis se sprema broj odabranog zapisa, a prikazuje se njegov naziv. Obrazac
+                smije pokazivati i sam na sebe (hijerarhija).
+              </span>
+            </label>
+
+            <label class="form-field">
+              <span class="form-field-label">Stupac koji se prikazuje</span>
+              <select
+                [ngModel]="newDisplayColumnKey()"
+                (ngModelChange)="newDisplayColumnKey.set($event)"
+                [disabled]="newTargetTemplateId() === null"
+              >
+                <option value="">— odaberi stupac —</option>
+                @for (column of displayColumnChoices(); track column.columnKey) {
+                  <option [value]="column.columnKey">{{ column.label || column.columnKey }}</option>
+                }
+              </select>
+              <span class="form-field-hint">
+                Bez njega bi u ćeliji stajao samo broj zapisa. Naziv se čita svaki put iz
+                ciljanog obrasca, pa preimenovanje ondje odmah vrijedi i ovdje.
+              </span>
+            </label>
+
+            <label class="form-field">
+              <span class="form-field-label">Kad se povezani zapis briše</span>
+              <select
+                [ngModel]="newOnTargetDelete()"
+                (ngModelChange)="newOnTargetDelete.set($event)"
+              >
+                <option value="restrict">Zabrani brisanje dok veza postoji</option>
+                <option value="clear">Dopusti brisanje i prekini vezu</option>
+              </select>
+              @if (newOnTargetDelete() === 'restrict') {
+                <span class="form-field-hint">
+                  Brisanje se odbija uz popis zapisa koji ga sprječavaju. Prikladno za veze koje
+                  se dokazuju (rizik → proces).
+                </span>
+              } @else {
+                <span class="form-field-hint">
+                  Zapis se briše, a ova polja ostaju prazna. Prekid ulazi u povijest zapisa.
+                  Zaključani zapisi i tada zabranjuju brisanje.
+                </span>
+              }
+            </label>
+
+            <label class="form-field form-field-checkbox">
+              <input
+                type="checkbox"
+                [ngModel]="newMultiple()"
+                (ngModelChange)="onMultipleChange($event)"
+              />
+              <span>Više povezanih zapisa</span>
+            </label>
+          </div>
+        }
+
+        @if (!valueless()) {
+        <div class="form-flags">
+          <label class="form-field form-field-checkbox">
+            <input type="checkbox" [ngModel]="newRequired()" (ngModelChange)="newRequired.set($event)" />
+            <span class="form-field-label">Obavezno</span>
+          </label>
+          <label class="form-field form-field-checkbox">
+            <input
+              type="checkbox"
+              [ngModel]="newUnique()"
+              (ngModelChange)="newUnique.set($event)"
+              [disabled]="newMultiple() || newType() === 'formula' || newType() === 'link'"
+            />
+            <span class="form-field-label">Jedinstveno</span>
+          </label>
+          <label class="form-field form-field-checkbox">
+            <!-- Kod stupca čiju vrijednost postavlja server ovo ne proizlazi iz izbora nego
+                 iz same postavke, pa se okvir gasi umjesto da nudi izbor bez učinka. -->
+            <input
+              type="checkbox"
+              [ngModel]="newReadOnly() || serverComputed()"
+              (ngModelChange)="newReadOnly.set($event)"
+              [disabled]="serverComputed()"
+            />
+            <span class="form-field-label">Samo za čitanje</span>
+          </label>
+        </div>
+        }
+        </div>
+      </div>
+      }
+
+      <!-- Traka se pojavi tek kad se nešto premjesti: premještanje je lokalno dok se ne
+           potvrdi, pa bez nje ne bi bilo vidljivo da promjena čeka. -->
+      @if (orderChanged()) {
+        <div class="order-bar">
+          <span>Redoslijed stupaca je promijenjen. Tako će se prikazivati i u tablici podataka.</span>
+          <button type="button" class="primary" [disabled]="savingOrder()" (click)="saveOrder()">
+            {{ savingOrder() ? 'Spremanje…' : 'Spremi redoslijed' }}
+          </button>
+          <button type="button" class="secondary" [disabled]="savingOrder()" (click)="cancelOrder()">
+            Odustani
+          </button>
+        </div>
+      }
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="order-col" title="Redoslijed stupaca u tablici podataka">⇅</th>
+              <th class="actions-col"></th>
+              <th>Naziv</th>
+              <th>Label</th>
+              <th>Tip</th>
+              <th>Šifrarnik</th>
+              <th>Postavke</th>
+              <th>Širina</th>
+              <th>Zadano</th>
+              <th>Obavezno</th>
+              <th>Jedinstveno</th>
+              <th>Samo za čitanje</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (column of columns(); track column.columnKey) {
+              <!-- povlačenje je na cijelom retku, ali ga pokreće samo hvatište - isto kao kod
+                   stavki šifrarnika -->
+              <tr
+                [class.dragging-row]="draggedKey() === column.columnKey"
+                (dragover)="onDragOver($event)"
+                (drop)="onDrop($event, column)"
+              >
+                <td>
+                  <div class="order-actions">
+                    <span
+                      class="drag-handle"
+                      draggable="true"
+                      title="Povuci za promjenu redoslijeda"
+                      (dragstart)="onDragStart(column)"
+                      (dragend)="onDragEnd()"
+                      >⇅</span
+                    >
+                    <button
+                      type="button"
+                      class="icon-button order-button"
+                      title="Pomakni gore"
+                      [disabled]="indexOf(column) === 0"
+                      (click)="moveBy(column, -1)"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-button order-button"
+                      title="Pomakni dolje"
+                      [disabled]="indexOf(column) === columns().length - 1"
+                      (click)="moveBy(column, 1)"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </td>
+                <td>
+                  <div class="row-icon-actions">
+                    <button type="button" class="icon-button icon-edit" title="Uredi stupac" (click)="startEditColumn(column)">✎</button>
+                    <button type="button" class="icon-button icon-delete" title="Obriši stupac" (click)="removeColumn(column)">✕</button>
+                  </div>
+                </td>
+                <td>{{ column.columnKey }}</td>
+                <td>{{ column.label || '-' }}</td>
+                <td>{{ typeLabel(column.columnType) }}</td>
+                <td>{{ codebookName(column.codebookId) }}</td>
+                <td class="options-cell">{{ optionsSummary(column) }}</td>
+                <td>{{ column.width ? column.width + ' px' : '-' }}</td>
+                <td>{{ column.defaultValue || '-' }}</td>
+                <td class="flag-cell">{{ column.required ? '✓' : '' }}</td>
+                <td class="flag-cell">{{ column.unique ? '✓' : '' }}</td>
+                <td class="flag-cell">{{ column.readOnly ? '✓' : '' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="12">Ovaj obrazac još nema definiranih stupaca.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

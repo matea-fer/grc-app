@@ -1,0 +1,184 @@
+/* Gornja traka. U firminoj temi je BIJELA s tankom linijom ispod, a ne obojana - boja
+   je ondje rezervirana za radnju u sadržaju, pa traka koja stoji na svakom ekranu ne
+   smije biti najglasnija stvar na njemu.
+
+   Nije, međutim, vezana uz boju kartice: traka ima vlastite tokene, pa je u mornarskoj
+   temi tamnoplava uz svijetli sadržaj. Zato sve u njoj uzima `--boja-traka-*`, a ne
+   opće boje teksta - inače na tamnoj traci ostane tamni tekst. */
+
+.app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0 1.5rem;
+  min-height: 46px;
+  background-color: var(--boja-traka);
+  background-image: var(--traka-kartice);
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  background-position: bottom;
+  border-bottom: 1px solid var(--boja-traka-rub);
+  color: var(--boja-traka-tekst);
+}
+
+.app-nav {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.app-nav a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 0;
+  color: var(--boja-traka-tekst);
+  text-decoration: none;
+}
+
+.app-nav a:hover {
+  color: var(--boja-traka-akcent);
+}
+
+/* Aktivna stavka se označava crtom ispod, ne podlogom: traka je niska, pa bi ispunjen
+   pravokutnik u njoj izgledao kao gumb i tražio klik koji ništa novo ne radi. */
+.app-nav a.active {
+  color: var(--boja-traka-akcent);
+  font-weight: 600;
+}
+
+/* Crta je zaseban sloj, a ne obrub, da može svijetliti: u tamnoj temi ispod nje stoji
+   isti sjaj koji nosi glavni gumb, pa se „ovdje si" i „ovo je radnja" čitaju kao ista
+   obitelj. U svijetlim temama je sjaj `none`, pa ostaje obična crta od 2px. */
+.app-nav a.active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--boja-traka-akcent);
+  box-shadow: var(--sjaj-akcent);
+}
+
+.app-session {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+.tenant-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--boja-traka-tekst);
+  opacity: 0.8;
+}
+
+/* običnom korisniku firma nije izbor nego činjenica iz tokena */
+.tenant-fixed {
+  color: var(--boja-traka-tekst);
+  opacity: 0.8;
+}
+
+/* neuspjelo učitavanje - mora se razlikovati od praznog popisa, ne od pozadine trake */
+.session-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2px 8px;
+  font-size: 13px;
+  color: var(--boja-greska-tekst);
+  background: var(--boja-greska-tiha);
+  border-radius: var(--radijus);
+}
+
+.retry-button {
+  padding: 1px 6px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--boja-greska-tekst);
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: var(--radijus);
+  cursor: pointer;
+}
+
+.retry-button:hover {
+  background: var(--boja-povrsina);
+}
+
+.session-user {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--boja-traka-tekst);
+}
+
+.role-badge {
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--boja-traka-akcent);
+  background: var(--boja-traka-tiha);
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus-pilula);
+}
+
+.logout-button {
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--boja-traka-tekst);
+  background: transparent;
+  border: 1px solid var(--boja-traka-rub);
+  border-radius: var(--radijus);
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  background: var(--boja-traka-tiha);
+}
+
+/* Birač teme. Znak ◐ stoji umjesto natpisa - traka je uska, a izbornik ionako
+   ispisuje ime odabrane teme. */
+.theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--boja-traka-tekst);
+  opacity: 0.8;
+}
+
+.theme-picker select,
+.tenant-picker select {
+  padding: 3px 6px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--boja-traka-tekst);
+  background: transparent;
+  border: 1px solid var(--boja-traka-rub);
+  border-radius: var(--radijus);
+}
+
+/* Otvoreni popis crta preglednik i na njega CSS ne doseže; boju mu daje `color-scheme`
+   teme, pa stavke moraju imati svoju podlogu - prozirna bi na tamnoj traci ostala bez nje. */
+.theme-picker option,
+.tenant-picker option {
+  color: var(--boja-tekst);
+  background: var(--boja-povrsina);
+}
+
+/* Sadržaj je širi nego prije: tablice imaju stupac po polju obrasca i rastu udesno,
+   pa ih uski stupac teksta samo tjera u vodoravno pomicanje. */
+.app-content {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}

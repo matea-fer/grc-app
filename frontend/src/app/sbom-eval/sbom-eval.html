@@ -1,0 +1,178 @@
+<h2>SBOM evaluacija</h2>
+<p class="screen-intro">
+  Učitajte SBOM (CycloneDX, SPDX ili Syft JSON). Nakon učitavanja analiza kreće u pozadini
+  (parser <strong>Grype</strong>); status se osvježava sam dok ne završi.
+</p>
+
+@if (activeCompanyId() === null) {
+  <p class="screen-intro">Odaberite firmu u gornjoj traci da učitate i vidite evaluacije.</p>
+} @else {
+  <!-- Upload -->
+  <section class="survey-form-card upload-card">
+    <h3>Nova evaluacija</h3>
+    <div class="upload-row">
+      <input
+        #fileInput
+        type="file"
+        accept=".json,.spdx,.cdx,.xml,application/json"
+        (change)="onFileSelected($event)"
+      />
+      <button
+        type="button"
+        class="small-button primary-action"
+        [disabled]="!selectedFileName() || uploading()"
+        (click)="upload(fileInput)"
+      >
+        {{ uploading() ? 'Šaljem…' : 'Učitaj i analiziraj' }}
+      </button>
+    </div>
+    @if (uploadError(); as message) {
+      <p class="error upload-error">{{ message }}</p>
+    }
+  </section>
+
+  @if (error(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+
+  <!-- Popis evaluacija -->
+  @if (loadingList() && evaluations().length === 0) {
+    <p class="screen-intro">Učitavanje…</p>
+  } @else if (evaluations().length === 0) {
+    <p class="screen-intro">Još nema nijedne evaluacije. Učitajte SBOM iznad.</p>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>SBOM</th>
+            <th>Učitano</th>
+            <th>Status</th>
+            <th>Nalazi</th>
+            <th class="actions-col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of evaluations(); track e.id) {
+            <tr class="clickable-row" (click)="view(e.id)">
+              <td>{{ e.fileName }}</td>
+              <td>{{ formatTime(e.uploadedAt) }}</td>
+              <td>
+                <span [class]="'status-badge status-' + e.status.toLowerCase()">
+                  {{ statusLabel(e.status) }}
+                </span>
+              </td>
+              <td>
+                @switch (e.status) {
+                  @case ('DONE') {
+                    @if (e.total === 0) {
+                      <span class="no-vulns">Nema ranjivosti</span>
+                    } @else {
+                      <span class="sev-counts">
+                        @if (e.critical) { <span class="sev-chip sev-critical">C {{ e.critical }}</span> }
+                        @if (e.high) { <span class="sev-chip sev-high">H {{ e.high }}</span> }
+                        @if (e.medium) { <span class="sev-chip sev-medium">M {{ e.medium }}</span> }
+                        @if (e.low) { <span class="sev-chip sev-low">L {{ e.low }}</span> }
+                        @if (e.negligible || e.unknown) {
+                          <span class="sev-chip sev-unknown">? {{ e.negligible + e.unknown }}</span>
+                        }
+                        <span class="sev-total">({{ e.total }} ukupno)</span>
+                      </span>
+                    }
+                  }
+                  @case ('FAILED') {
+                    <span class="error">{{ e.errorMessage || 'Analiza nije uspjela.' }}</span>
+                  }
+                  @default {
+                    <span class="working">…</span>
+                  }
+                }
+              </td>
+              <td class="actions-col">
+                <button type="button" class="icon-button icon-delete" title="Obriši"
+                        (click)="remove(e, $event)">✕</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Detalj odabrane evaluacije -->
+  @if (detail(); as d) {
+    <section class="survey-form-card detail-card">
+      <div class="detail-head">
+        <h3>{{ d.fileName }}</h3>
+        <button type="button" class="small-button" (click)="closeDetail()">Zatvori</button>
+      </div>
+
+      <p class="detail-meta">
+        <span [class]="'status-badge status-' + d.status.toLowerCase()">{{ statusLabel(d.status) }}</span>
+        @if (d.toolVersion) { <span>· Grype {{ d.toolVersion }}</span> }
+        @if (d.finishedAt) { <span>· završeno {{ formatTime(d.finishedAt) }}</span> }
+        @if (d.uploadedBy) { <span>· {{ d.uploadedBy }}</span> }
+      </p>
+
+      @if (d.status === 'FAILED') {
+        <p class="error">{{ d.errorMessage || 'Analiza nije uspjela.' }}</p>
+      } @else if (d.status === 'PENDING' || d.status === 'RUNNING') {
+        <p class="screen-intro">Analiza je u tijeku — rezultati stižu čim Grype završi…</p>
+      } @else {
+        <!-- Sažetak po ozbiljnosti -->
+        <div class="sev-summary">
+          <div class="sev-tile sev-critical"><span class="sev-num">{{ d.critical }}</span><span>Kritične</span></div>
+          <div class="sev-tile sev-high"><span class="sev-num">{{ d.high }}</span><span>Visoke</span></div>
+          <div class="sev-tile sev-medium"><span class="sev-num">{{ d.medium }}</span><span>Srednje</span></div>
+          <div class="sev-tile sev-low"><span class="sev-num">{{ d.low }}</span><span>Niske</span></div>
+          <div class="sev-tile sev-unknown"><span class="sev-num">{{ d.negligible + d.unknown }}</span><span>Ostalo</span></div>
+        </div>
+
+        @if (d.vulnerabilities.length === 0) {
+          <p class="no-vulns">Nema pronađenih ranjivosti. 🎉</p>
+        } @else {
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ranjivost</th>
+                  <th>Ozbiljnost</th>
+                  <th>Paket</th>
+                  <th>Verzija</th>
+                  <th>Ispravak</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (v of d.vulnerabilities; track $index) {
+                  <tr>
+                    <td>
+                      @if (v.dataSource) {
+                        <a [href]="v.dataSource" target="_blank" rel="noopener">{{ v.id }}</a>
+                      } @else {
+                        {{ v.id }}
+                      }
+                    </td>
+                    <td>
+                      <span [class]="'sev-chip ' + severityClass(v.severity)">{{ v.severity }}</span>
+                    </td>
+                    <td>{{ v.packageName }} <span class="pkg-type">{{ v.packageType }}</span></td>
+                    <td>{{ v.packageVersion }}</td>
+                    <td>
+                      @if (v.fixedInVersions.length) {
+                        <span class="fixed-in">{{ v.fixedInVersions.join(', ') }}</span>
+                      } @else {
+                        <span class="no-fix">{{ v.fixState || 'nema' }}</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </section>
+  } @else if (detailLoading()) {
+    <p class="screen-intro">Učitavanje detalja…</p>
+  }
+}

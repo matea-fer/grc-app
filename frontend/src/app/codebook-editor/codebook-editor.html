@@ -1,0 +1,151 @@
+<div class="screen">
+  <button type="button" class="back-link" (click)="back()">← Šifrarnici</button>
+
+  <h2>
+    {{ codebook()?.name ?? 'Šifrarnik' }}
+    @if (codebook(); as cb) {
+      <span class="scope-badge" [class.scope-global]="cb.scope === 'GLOBAL'">
+        {{ cb.scope === 'GLOBAL' ? 'Globalni' : 'Firmin' }}
+      </span>
+    }
+  </h2>
+
+  <p class="screen-intro">
+    <strong>Šifra</strong> je tehnička oznaka koja se sprema u podatke i ne bi se smjela mijenjati
+    nakon prve upotrebe. <strong>Naziv</strong> je ono što korisnik vidi i smije se mijenjati.
+    Stavku koja se više ne koristi <strong>isključite</strong> umjesto da je obrišete — tako se ne
+    nudi za nove unose, a ostaje čitljiva u starim zapisima.
+  </p>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="success">{{ success() }}</p>
+  }
+
+  @if (!canEdit() && codebook()) {
+    <p class="column-scope-warning">
+      Ovaj šifrarnik možete pregledavati, ali ne i mijenjati.
+    </p>
+  }
+
+  @if (loading()) {
+    <p>Učitavanje…</p>
+  }
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          @if (canEdit()) {
+            <th class="order-col" title="Redoslijed u padajućem izborniku">⇅</th>
+          }
+          <th class="actions-col"></th>
+          <th>Šifra</th>
+          <th>Naziv</th>
+          <th class="active-col">Aktivan</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.key) {
+          <!-- povlačenje je na cijelom retku, ali ga pokreće samo hvatište (draggable je
+               na njemu) - inače se ne bi moglo označiti tekst u poljima retka -->
+          <tr
+            [class.inactive-row]="!item.active"
+            [class.dragging-row]="draggedKey() === item.key"
+            (dragover)="onDragOver($event)"
+            (drop)="onDrop($event, item)"
+          >
+            @if (canEdit()) {
+              <td>
+                <div class="order-actions">
+                  <span
+                    class="drag-handle"
+                    draggable="true"
+                    title="Povuci za promjenu redoslijeda"
+                    (dragstart)="onDragStart(item)"
+                    (dragend)="onDragEnd()"
+                    >⇅</span
+                  >
+                  <button
+                    type="button"
+                    class="icon-button order-button"
+                    title="Pomakni gore"
+                    [disabled]="indexOf(item) === 0"
+                    (click)="moveBy(item, -1)"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-button order-button"
+                    title="Pomakni dolje"
+                    [disabled]="indexOf(item) === items().length - 1"
+                    (click)="moveBy(item, 1)"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </td>
+            }
+            <td>
+              <div class="row-icon-actions">
+                @if (canEdit()) {
+                  <button type="button" class="icon-button icon-delete" title="Ukloni redak" (click)="removeRow(item)">✕</button>
+                }
+              </div>
+            </td>
+            <td>
+              @if (canEdit()) {
+                <input
+                  type="text"
+                  class="code-input"
+                  [ngModel]="item.code"
+                  (ngModelChange)="updateCode(item.key, $event)"
+                />
+              } @else {
+                {{ item.code }}
+              }
+            </td>
+            <td>
+              @if (canEdit()) {
+                <input type="text" [ngModel]="item.name" (ngModelChange)="updateName(item.key, $event)" />
+              } @else {
+                {{ item.name }}
+              }
+            </td>
+            <td>
+              <input
+                type="checkbox"
+                [ngModel]="item.active"
+                [disabled]="!canEdit()"
+                (ngModelChange)="updateActive(item.key, $event)"
+              />
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="canEdit() ? 5 : 4">Šifrarnik još nema stavki.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (canEdit()) {
+    <div class="editor-actions">
+      <button type="button" class="secondary" (click)="addRow()">+ Dodaj stavku</button>
+
+      <span class="editor-spacer"></span>
+
+      @if (dirty()) {
+        <span class="dirty-hint">Nespremljene izmjene</span>
+        <button type="button" class="secondary" (click)="discard()">Odbaci</button>
+      }
+      <button type="button" class="primary" [disabled]="saving() || !dirty()" (click)="save()">
+        {{ saving() ? 'Spremanje…' : 'Spremi' }}
+      </button>
+    </div>
+  }
+</div>

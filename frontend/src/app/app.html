@@ -1,0 +1,67 @@
+@if (isLoggedIn()) {
+  <header class="app-bar">
+    <nav class="app-nav">
+      @if (isAdmin()) {
+        <a routerLink="/organizacije" routerLinkActive="active">Organizacije</a>
+      }
+      @if (canManageUsers()) {
+        <a routerLink="/korisnici" routerLinkActive="active">Korisnici</a>
+      }
+      @if (canEditSchema()) {
+        <a routerLink="/editor" routerLinkActive="active">Editor obrazaca</a>
+      }
+      <a routerLink="/sifrarnici" routerLinkActive="active">Šifrarnici</a>
+      <a routerLink="/podaci" routerLinkActive="active">Podaci</a>
+      <a routerLink="/kpi-samoprocjene" routerLinkActive="active">KPI samoprocjena</a>
+      <a routerLink="/zadaci-pregled" routerLinkActive="active">Zadaci</a>
+      <a routerLink="/sbom" routerLinkActive="active">SBOM</a>
+      <a routerLink="/dnevnik" routerLinkActive="active">Dnevnik</a>
+    </nav>
+
+    <div class="app-session">
+      @if (sessionError(); as message) {
+        <span class="session-error" role="alert">
+          {{ message }}
+          <button type="button" class="retry-button" (click)="retry()">Pokušaj ponovno</button>
+        </span>
+      }
+
+      @if (isAdmin()) {
+        <label class="tenant-picker">
+          <span>Firma:</span>
+          <select [ngModel]="activeCompanyId()" (ngModelChange)="onTenantChange($event)">
+            <option [ngValue]="null">{{ tenantPlaceholder() }}</option>
+            @for (company of companies(); track company.id) {
+              <option [ngValue]="company.id">{{ company.name }}</option>
+            }
+          </select>
+        </label>
+      } @else {
+        <span class="tenant-fixed">Firma: {{ activeCompanyName() ?? currentUser()?.companyName }}</span>
+      }
+
+      <span class="session-user">
+        {{ currentUser()?.username }}
+        @if (isAdmin()) {
+          <span class="role-badge">admin</span>
+        } @else if (isTenantAdmin()) {
+          <span class="role-badge">admin firme</span>
+        }
+      </span>
+      <label class="theme-picker" title="Tema sučelja">
+        <span aria-hidden="true">◐</span>
+        <select aria-label="Tema sučelja" [ngModel]="tema()" (ngModelChange)="onThemeChange($event)">
+          @for (izbor of teme; track izbor.kljuc) {
+            <option [value]="izbor.kljuc">{{ izbor.naziv }}</option>
+          }
+        </select>
+      </label>
+
+      <button type="button" class="logout-button" (click)="logout()">Odjava</button>
+    </div>
+  </header>
+}
+
+<main class="app-content">
+  <router-outlet />
+</main>

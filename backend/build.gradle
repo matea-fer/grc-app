@@ -1,0 +1,89 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'demo'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Mockito se mora ucitati kao Java agent. Bez ovoga se ubacuje sam ("self-attaching"),
+// sto novije verzije JDK-a sve vise zabranjuju i u buducnosti ce prestati raditi.
+configurations {
+    mockitoAgent
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // Samo BCrypt, bez spring-boot-starter-security: puni starter podigne vlastiti lanac
+    // filtera koji blokira sve dok se ne konfigurira i preuzme oblik 401/403 odgovora iz
+    // ruku ApiExceptionHandler-a. spring-security-crypto je samostalan, bez autokonfiguracije.
+    implementation 'org.springframework.security:spring-security-crypto'
+    // Flyway vodi evidenciju o obliku baze: numerirane SQL migracije koje se izvrse
+    // pri pokretanju, uz tablicu flyway_schema_history koja pamti sto je vec proslo.
+    // Zamjenjuje ddl-auto=update, koji je znao samo DODAVATI - postojeca ogranicenja
+    // nikad nije mijenjao, pa je nova vrijednost u enumu ostajala odbijena starim CHECK-om.
+    // Uz Postgres 15+ dijalekt vise nije u jezgri, nego je zaseban modul.
+    // spring-boot-flyway, a ne sam flyway-core: Spring Boot 4 je autokonfiguracije razdvojio
+    // u zasebne module, pa flyway-core daje knjiznicu, ali ne i njezino pokretanje uz
+    // aplikaciju. Bez ovog modula Flyway se TIHO ne pokrene - migracije se ne izvrse, a
+    // nista ne javi gresku. (flyway-core dolazi s njim.)
+    // Postgres dijalekt je od Flywaya 10 zaseban modul.
+    implementation 'org.springframework.boot:spring-boot-flyway'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+    runtimeOnly 'org.postgresql:postgresql'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // MockMvc - slanje PRAVOG zahtjeva kroz cijeli web sloj, bez pokretanja servera.
+    // Ista prica kao kod spring-boot-flyway gore: Spring Boot 4 je testnu podrsku razdvojio
+    // u zasebne module, pa starter-test vise NE dovlaci MockMvc. Do Boota 3 je bio ondje sam
+    // od sebe, sto znaci da isti test koji je radio na 3.x na 4.x ne kompajlira.
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    mockitoAgent('org.mockito:mockito-core') { transitive = false }
+}
+
+// agent vrijedi za sve test taskove - test, coreTest i businessTest
+tasks.withType(Test).configureEach {
+    doFirst {
+        jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// Testovi su podijeljeni u dvije skupine preko JUnit tagova:
+//   core     - generika koju generiraju skillovi (CRUD, DTO mapiranje, 404)
+//   business - domenska pravila nastala kroz promptanje
+tasks.register('coreTest', Test) {
+    description = 'Pokreće samo core testove (generika iz skillova).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'core' }
+}
+
+tasks.register('businessTest', Test) {
+    description = 'Pokreće samo business testove (domenska pravila).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'business' }
+}

@@ -1,0 +1,204 @@
+/* Sve boje iz tokena teme (styles.css) - nijedan hex ovdje. */
+
+/* --- upload --- */
+.upload-card {
+  margin-bottom: 1.25rem;
+}
+
+.upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.upload-row input[type='file'] {
+  font: inherit;
+  color: var(--boja-tekst);
+}
+
+/* glavni gumb ekrana - ispunjen akcent (isti izgled kao .primary drugdje) */
+.primary-action:not(:disabled) {
+  color: var(--boja-akcent-tekst);
+  background: var(--gradijent-akcent);
+  border-color: transparent;
+  box-shadow: var(--sjaj-akcent);
+}
+
+.upload-error {
+  margin: 0.75rem 0 0;
+}
+
+/* --- redak popisa --- */
+.clickable-row {
+  cursor: pointer;
+}
+
+.working {
+  color: var(--boja-tekst-prigusen);
+}
+
+.no-vulns {
+  color: var(--boja-uspjeh);
+  font-weight: 600;
+}
+
+/* --- status badge --- */
+.status-badge {
+  display: inline-block;
+  padding: 1px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus-pilula);
+  white-space: nowrap;
+}
+
+.status-pending {
+  color: var(--boja-tekst-prigusen);
+  background: var(--boja-znacka);
+}
+
+.status-running {
+  color: var(--boja-akcent-2);
+  background: var(--boja-akcent-tiha);
+  border-color: var(--boja-akcent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.status-done {
+  color: var(--boja-uspjeh);
+  background: var(--boja-povrsina-tiha);
+}
+
+.status-failed {
+  color: var(--boja-greska-tekst);
+  background: var(--boja-greska-tiha);
+  border-color: var(--boja-greska);
+}
+
+/* --- brojevi po ozbiljnosti (chips) --- */
+.sev-counts {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sev-chip {
+  display: inline-block;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus-pilula);
+  white-space: nowrap;
+}
+
+.sev-total {
+  color: var(--boja-tekst-prigusen);
+  font-size: 12px;
+}
+
+/* skala ozbiljnosti - crveno (kritično/visoko), jantar (srednje), tiho (nisko/ostalo) */
+.sev-critical {
+  color: var(--boja-akcent-tekst);
+  background: var(--boja-greska-tekst);
+  border-color: var(--boja-greska-tekst);
+}
+
+.sev-high {
+  color: var(--boja-greska-tekst);
+  background: var(--boja-greska-tiha);
+  border-color: var(--boja-greska);
+}
+
+.sev-medium {
+  color: var(--boja-upozorenje);
+  background: var(--boja-upozorenje-tiha);
+  border-color: var(--boja-upozorenje-rub);
+}
+
+.sev-low {
+  color: var(--boja-tekst-prigusen);
+  background: var(--boja-povrsina-tiha);
+  border-color: var(--boja-rub);
+}
+
+.sev-negligible,
+.sev-unknown {
+  color: var(--boja-tekst-prigusen);
+  background: var(--boja-znacka);
+  border-color: var(--boja-rub);
+}
+
+/* --- detalj --- */
+.detail-card {
+  margin-top: 1.25rem;
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.detail-head h3 {
+  margin: 0;
+}
+
+.detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
+/* --- sažetak po ozbiljnosti (tiles) --- */
+.sev-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.sev-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.75rem;
+  font-size: 13px;
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus);
+}
+
+.sev-num {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* tip paketa uz naziv - tiši */
+.pkg-type {
+  font-size: 12px;
+  color: var(--boja-tekst-prigusen);
+}
+
+.fixed-in {
+  color: var(--boja-uspjeh);
+  font-weight: 600;
+}
+
+.no-fix {
+  color: var(--boja-tekst-prigusen);
+}

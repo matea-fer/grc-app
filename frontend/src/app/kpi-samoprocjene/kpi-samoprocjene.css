@@ -1,0 +1,97 @@
+/* Nadzorna ploča: pločice s brojkama + trake raspodjele. Sve boje iz tokena teme
+   (styles.css) - nijedan hex ovdje. */
+
+/* --- KPI pločice --- */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.kpi-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 1rem 1.25rem;
+  background-color: var(--boja-povrsina);
+  background-image: var(--traka-kartice);
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  border: 1px solid var(--boja-rub);
+  border-radius: var(--radijus);
+  box-shadow: var(--sjena-kartica);
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--boja-akcent-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
+/* --- kartice s trakama --- */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.dash-grid h3 {
+  margin: 0 0 1rem;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 9rem 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.bar-name {
+  font-size: 13px;
+  color: var(--boja-tekst);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-track {
+  height: 12px;
+  background: var(--boja-povrsina-tiha);
+  border: 1px solid var(--boja-rub);
+  border-radius: var(--radijus-pilula);
+  overflow: hidden;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: var(--gradijent-akcent);
+  border-radius: var(--radijus-pilula);
+}
+
+.bar-count {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--boja-tekst-prigusen);
+  white-space: nowrap;
+}
+
+/* --- popis „traži pažnju" --- */
+.paznja-section h3 {
+  margin: 0 0 0.75rem;
+}
+
+.num-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

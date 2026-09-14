@@ -1,0 +1,37 @@
+# ===== Backend (Java / Gradle / Spring) =====
+backend/.gradle/
+backend/build/
+backend/bin/
+backend/out/
+backend/*.log
+
+# ===== Frontend (Angular / Node) =====
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/*.log
+
+# ===== Claude Code (lokalna konfiguracija) =====
+.claude/
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+
+# ===== OS =====
+Thumbs.db
+.DS_Store
+
+# ===== Env / tajne =====
+.env
+*.env
+!.env.example
+!backend/.env.example
+
+# ===== Kickoff (lokalno) =====
+projekt.yml
+
+# ===== Python meduspremnik alata u pipeline/ =====
+__pycache__/
+*.pyc

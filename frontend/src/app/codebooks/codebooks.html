@@ -1,0 +1,154 @@
+<div class="screen">
+  <h2>Šifrarnici</h2>
+  <p class="screen-intro">
+    Imenovani popisi dopuštenih vrijednosti koje dijeli više obrazaca. Globalni vrijede za sve
+    firme, firmini samo za odabranu.
+  </p>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="success">{{ success() }}</p>
+  }
+
+  <div class="toolbar">
+    @if (canCreate()) {
+      <button type="button" class="add-toggle-button" (click)="openAddDialog()">+ Dodaj šifrarnik</button>
+    }
+
+    <label class="filter-field">
+      <span>Doseg:</span>
+      <select [ngModel]="scopeFilter()" (ngModelChange)="onScopeFilterChange($event)">
+        <option value="">— svi —</option>
+        <option value="GLOBAL">Globalni</option>
+        <option value="TENANT">Firmini</option>
+      </select>
+    </label>
+
+    <input
+      type="search"
+      class="search-input"
+      placeholder="Pretraži po nazivu…"
+      [value]="searchTerm()"
+      (input)="onSearchChange($event)"
+    />
+  </div>
+
+  @if (showAddDialog()) {
+    <div class="modal-backdrop" (click)="closeAddDialog()">
+      <!-- klik unutar dijaloga ne smije doprijeti do pozadine i zatvoriti ga -->
+      <div class="survey-form-card modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Novi šifrarnik</h3>
+          <button type="button" class="icon-button" title="Zatvori" (click)="closeAddDialog()">✕</button>
+        </div>
+        <!-- Radnje stoje GORE DESNO, iznad polja: dijalog se ne mora prolistati do dna da bi
+             se vidjelo čime se potvrđuje, a kod dugačkih obrazaca gumb ne odluta iz vida. -->
+        <div class="form-actions">
+          <button type="button" class="secondary" (click)="closeAddDialog()">Odustani</button>
+          <button type="button" class="primary" (click)="add()">Dodaj šifrarnik</button>
+        </div>
+        @if (dialogError()) {
+          <p class="error dialog-error">{{ dialogError() }}</p>
+        }
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-field-label" for="new-codebook-name">Naziv</label>
+            <input
+              id="new-codebook-name"
+              type="text"
+              [ngModel]="newName()"
+              (ngModelChange)="newName.set($event)"
+            />
+          </div>
+
+          <div class="form-field">
+            <label class="form-field-label" for="new-codebook-scope">Doseg</label>
+            @if (scopeOptions().length === 1) {
+              <!-- administrator firme može raditi samo šifrarnike svoje firme -->
+              <span class="form-field-static">{{ scopeLabel(scopeOptions()[0]) }}</span>
+            } @else {
+              <select id="new-codebook-scope" [ngModel]="newScope()" (ngModelChange)="newScope.set($event)">
+                @for (scope of scopeOptions(); track scope) {
+                  <option [value]="scope">{{ scopeLabel(scope) }}</option>
+                }
+              </select>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <p>Učitavanje…</p>
+  }
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="actions-col"></th>
+          <th>Naziv</th>
+          <th>Doseg</th>
+          <th>Broj stavki</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (codebook of codebooks(); track codebook.id) {
+          <tr>
+            <td>
+              <div class="row-icon-actions">
+                <!-- Sadržaj se prije otvarao klikom na NAZIV, što se nije dalo naslutiti -
+                     naziv u tablici izgleda kao podatak, a ne kao put dalje. Natpis kaže i
+                     što se otvara i smije li se ondje mijenjati. -->
+                <button
+                  type="button"
+                  class="row-action-button"
+                  [title]="'Otvori stavke šifrarnika ' + codebook.name"
+                  (click)="openItems(codebook)"
+                >
+                  {{ canEdit(codebook) ? 'Uredi stavke' : 'Pogledaj stavke' }}
+                </button>
+                @if (canEdit(codebook)) {
+                  @if (editingId() === codebook.id) {
+                    <button type="button" class="icon-button" title="Spremi" (click)="saveEdit(codebook.id)">✓</button>
+                    <button type="button" class="icon-button" title="Odustani" (click)="cancelEdit()">✕</button>
+                  } @else {
+                    <button type="button" class="icon-button icon-edit" title="Preimenuj" (click)="startEdit(codebook)">✎</button>
+                    <button type="button" class="icon-button icon-delete" title="Obriši" (click)="remove(codebook)">✕</button>
+                  }
+                }
+              </div>
+            </td>
+            <td>
+              @if (editingId() === codebook.id) {
+                <input type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
+              } @else {
+                {{ codebook.name }}
+              }
+            </td>
+            <td>
+              <span class="scope-badge" [class.scope-global]="codebook.scope === 'GLOBAL'">
+                {{ scopeLabel(codebook.scope) }}
+              </span>
+            </td>
+            <td>{{ codebook.itemCount }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">
+              @if (searchTerm() || scopeFilter()) {
+                Nijedan šifrarnik ne odgovara pretrazi.
+              } @else {
+                Još nema šifrarnika.
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

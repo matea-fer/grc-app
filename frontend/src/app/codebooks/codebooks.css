@@ -1,0 +1,67 @@
+/* .screen-intro i unos u retku (`td input`) su u globalnom styles.css */
+
+/* filtar i pretraga stoje u traci uz gumb za dodavanje */
+.filter-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
+.filter-field select,
+.search-input {
+  min-height: 32px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--boja-tekst);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+.filter-field select:focus,
+.search-input:focus {
+  border-color: var(--boja-akcent);
+  outline: none;
+}
+
+.search-input {
+  min-width: 16rem;
+}
+
+/* Gumb koji vodi na stavke. Stoji uz ostale radnje retka, ali s natpisom, a ne ikonom:
+   „✎" u ovom retku već znači preimenovanje šifrarnika, pa bi druga ikona uz njega tražila
+   pogađanje. Nižeg je tona od primarnih gumba - radnja je česta, ali nije odluka. */
+.row-action-button {
+  padding: 1px 8px;
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  color: var(--boja-akcent);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-akcent);
+  border-radius: var(--radijus);
+  cursor: pointer;
+}
+
+.row-action-button:hover {
+  background: var(--boja-akcent-tiha);
+}
+
+.scope-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--boja-naslov);
+  background: var(--boja-znacka);
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus-pilula);
+}
+
+/* globalni se razlikuje bojom - mijenja ga se rjeđe i tiče se svih firmi */
+.scope-global {
+  color: var(--boja-upozorenje);
+  background: var(--boja-upozorenje-tiha);
+}

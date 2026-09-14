@@ -1,0 +1,75 @@
+{
+  "naziv": "starter-project (kostur)",
+  "baseUrl": "http://localhost:8080",
+  "admin": {
+    "username": "admin",
+    "password": "admin"
+  },
+  "prijavaPutanja": "/api/auth/login",
+  "mePutanja": "/api/auth/me",
+  "grupe": {
+    "putanja": "/api/companies",
+    "tijelo": {
+      "name": "{naziv}"
+    },
+    "zaglavljeOdabira": "TenantID",
+    "brisanje": [
+      {
+        "metoda": "DELETE",
+        "putanja": "/api/companies/{id}"
+      },
+      {
+        "metoda": "DELETE",
+        "putanja": "/api/companies/{id}/purge"
+      }
+    ]
+  },
+  "korisnici": {
+    "putanja": "/api/users",
+    "poljeIme": "username",
+    "poljeLozinka": "password",
+    "poljeUloga": "role",
+    "poljeGrupa": "companyId",
+    "tijelo": {}
+  },
+  "obrasci": {
+    "putanja": "/api/templates",
+    "tijelo": {
+      "name": "{naziv}"
+    }
+  },
+  "stupci": {
+    "putanja": "/api/templates/{obrazac}/columns",
+    "poljeKljuc": "columnKey",
+    "poljeTip": "columnType",
+    "poljeNatpis": "label",
+    "tipovi": {
+      "tekst": "string",
+      "broj": "number",
+      "datum": "date"
+    },
+    "tijelo": {
+      "required": false,
+      "unique": false,
+      "readOnly": false
+    }
+  },
+  "zapisi": {
+    "putanja": "/api/templates/{obrazac}/surveys",
+    "poljeData": "data",
+    "upit": {
+      "stranica": "page",
+      "zadanaVelicina": 50,
+      "sortKljuc": "sortBy",
+      "sortSmjer": {
+        "parametar": "sortDir",
+        "uzlazno": "asc",
+        "silazno": "desc"
+      },
+      "filter": {
+        "oblik": "kljuc-dvotocka-vrijednost",
+        "parametar": "filter"
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+-- GIN indeks nad podacima zapisa - za veze medu obrascima (13.08.2026.).
+--
+-- V6 je GIN nad `data` izricito ODBIO, i to s dobrim razlogom: tada je jedini uzorak pretrage
+-- bio "sadrzi dio teksta" (LIKE '%zagreb%'), a to GIN ne ubrzava. Veze medu obrascima su prvi
+-- uzorak kod kojeg pitanje glasi tocno "sadrzi ovu vrijednost" (data @> {"proces": 12}) - a to
+-- je jedino sto GIN i radi. Razlog iz V6 nije prestao vrijediti; pojavio se drugi slucaj.
+--
+-- ZASTO SE ISPLATI. Uvjet se ne postavlja samo kad korisnik filtrira, nego pri SVAKOM brisanju
+-- zapisa: prije brisanja se mora provjeriti pokazuje li itko na njega, i to kroz svaki stupac
+-- svakog obrasca firme koji na taj obrazac moze pokazivati. Bez indeksa je to citanje cijele
+-- tablice po svakom takvom stupcu.
+--
+-- ZASTO JEDAN INDEKS NAD CIJELIM `data`, A NE PO KLJUCU. Isti razlog kao u V6: kljuceve
+-- ("proces", "kontrole") izmislja korisnik u Editoru, pa bi indeks po kljucu znacio da
+-- dodavanje i brisanje stupca mijenja shemu baze u redovnom radu. Jedan GIN nad `data`
+-- poslouzuje SVE referentne stupce svih obrazaca, i one koji jos ne postoje.
+--
+-- ZASTO jsonb_ops, A NE jsonb_path_ops. jsonb_path_ops je manji i brzi, ali podrzava samo
+-- @>; jsonb_ops podrzava i provjeru postojanja kljuca. Veze trenutno trebaju samo @>, ali
+-- razlika u velicini je ovdje nevazna, a zatvarati si vrata za jedan indeks nema smisla.
+
+CREATE INDEX ix_survey_result_data ON public.survey_result USING gin (data);

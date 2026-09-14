@@ -1,0 +1,22 @@
+# Throwaway Postgres za OVU aplikaciju. Svaka aplikacija diže svoju, na svom portu.
+# Vrijednosti dolaze iz .env (cp .env.example .env). Reset baze: docker compose down -v
+services:
+  db:
+    image: postgres:16
+    container_name: ${DB_NAME:-app}-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-app_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-app_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:

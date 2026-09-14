@@ -1,0 +1,66 @@
+/* .screen-intro je u globalnom styles.css */
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.filter-bar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
+.filter-bar select,
+.filter-bar input {
+  min-height: 30px;
+  padding: 4px 8px;
+  font: inherit;
+  color: var(--boja-tekst);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+.filter-bar select:focus,
+.filter-bar input:focus {
+  border-color: var(--boja-akcent);
+  outline: none;
+}
+
+/* Traka stranica - isti izgled kao na ekranu „Podaci”, jer je i posao isti. */
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 0.75rem;
+}
+
+.pager-range {
+  color: var(--boja-tekst-prigusen);
+  font-size: 13px;
+}
+
+.pager-range:first-child {
+  margin-right: auto;
+}
+
+/* Oblik gumba dolazi iz globalnog stila; stranica je broj, pa je uža i tiša od
+   gumba koji nose natpis radnje. */
+.pager-button {
+  min-width: 28px;
+  padding: 3px 6px;
+  font-weight: normal;
+  border-color: var(--boja-rub-polja);
+}
+
+/* detalj je jedina ćelija koja smije prelomiti - ostale su kratke i uže se čitaju u retku */
+.detail-col {
+  white-space: normal;
+  min-width: 20rem;
+}

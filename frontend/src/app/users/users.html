@@ -1,0 +1,135 @@
+<div class="screen">
+  <h2>Korisnici</h2>
+  @if (isTenantAdmin()) {
+    <p class="screen-intro">
+      Računi za prijavu u firmi {{ ownCompanyName() }}. Vidite i dodajete isključivo račune svoje
+      firme; administratora firme možete imenovati da posao podijelite s nekim.
+    </p>
+  } @else {
+    <p class="screen-intro">
+      Računi za prijavu. Firma može imati koliko god korisnika; globalni administrator ne pripada
+      nijednoj, a administrator firme upravlja korisnicima samo unutar svoje.
+    </p>
+  }
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="success">{{ success() }}</p>
+  }
+
+  <div class="toolbar">
+    <button type="button" class="add-toggle-button" (click)="openAddDialog()">+ Dodaj korisnika</button>
+  </div>
+
+  @if (showAddDialog()) {
+    <div class="modal-backdrop" (click)="closeAddDialog()">
+      <!-- klik unutar dijaloga ne smije doprijeti do pozadine i zatvoriti ga -->
+      <div class="survey-form-card modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Novi korisnik</h3>
+          <button type="button" class="icon-button" title="Zatvori" (click)="closeAddDialog()">✕</button>
+        </div>
+        <!-- Radnje stoje GORE DESNO, iznad polja: dijalog se ne mora prolistati do dna da bi
+             se vidjelo čime se potvrđuje. -->
+        <div class="form-actions">
+          <button type="button" class="secondary" (click)="closeAddDialog()">Odustani</button>
+          <button type="button" class="primary" (click)="add()">Dodaj korisnika</button>
+        </div>
+        @if (dialogError()) {
+          <p class="error dialog-error">{{ dialogError() }}</p>
+        }
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-field-label" for="new-username">Korisničko ime</label>
+            <input
+              id="new-username"
+              type="text"
+              [ngModel]="newUsername()"
+              (ngModelChange)="newUsername.set($event)"
+            />
+          </div>
+
+          <div class="form-field">
+            <label class="form-field-label" for="new-password">Lozinka (min. 8 znakova)</label>
+            <input
+              id="new-password"
+              type="password"
+              autocomplete="new-password"
+              [ngModel]="newPassword()"
+              (ngModelChange)="newPassword.set($event)"
+            />
+          </div>
+
+          <div class="form-field">
+            <label class="form-field-label" for="new-role">Uloga</label>
+            <select id="new-role" [ngModel]="newRole()" (ngModelChange)="onRoleChange($event)">
+              @for (role of roleOptions(); track role) {
+                <option [value]="role">{{ roleLabel(role) }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label class="form-field-label" for="new-company">Firma</label>
+            @if (isTenantAdmin()) {
+              <!-- nema što birati: administrator firme dodaje samo u svoju -->
+              <span class="form-field-static">{{ ownCompanyName() }}</span>
+            } @else if (newRole() === 'ADMIN') {
+              <span class="form-field-static">—</span>
+            } @else {
+              <select id="new-company" [ngModel]="newCompanyId()" (ngModelChange)="newCompanyId.set($event)">
+                <option [ngValue]="null">— odaberi firmu —</option>
+                @for (company of companies(); track company.id) {
+                  <option [ngValue]="company.id">{{ company.name }}</option>
+                }
+              </select>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="actions-col"></th>
+          <th>ID</th>
+          <th>Korisničko ime</th>
+          <th>Uloga</th>
+          <th>Firma</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users(); track user.id) {
+          <tr>
+            <td>
+              <div class="row-icon-actions">
+                @if (user.username !== currentUsername()) {
+                  <button type="button" class="icon-button icon-delete" title="Obriši" (click)="remove(user)">✕</button>
+                }
+              </div>
+            </td>
+            <td>{{ user.id }}</td>
+            <td>
+              {{ user.username }}
+              @if (user.username === currentUsername()) {
+                <span class="active-badge">to ste vi</span>
+              }
+            </td>
+            <td>{{ roleLabel(user.role) }}</td>
+            <td>{{ user.companyName ?? '—' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">Još nema korisnika.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,188 @@
+<div class="screen">
+  <h2>Organizacije</h2>
+  <p class="screen-intro">Firme (tenanti) nad kojima aplikacija radi. Odabir aktivne firme je u gornjoj traci.</p>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="success">{{ success() }}</p>
+  }
+
+  <div class="toolbar">
+    <button type="button" class="add-toggle-button" (click)="openAddDialog()">+ Dodaj firmu</button>
+    <!-- Prijenos obrazaca prelazi granicu izmedu firmi, pa stoji ovdje gdje se firme i vide. -->
+    <button type="button" class="small-button secondary" (click)="openTransferDialog()">
+      Prenesi obrasce
+    </button>
+  </div>
+
+  @if (showTransferDialog()) {
+    <app-template-transfer-dialog
+      [companies]="companies()"
+      [initialSourceId]="activeCompanyId()"
+      (transferred)="onTransferred($event)"
+      (closed)="showTransferDialog.set(false)"
+    />
+  }
+
+  @if (showAddDialog()) {
+    <div class="modal-backdrop" (click)="closeAddDialog()">
+      <!-- klik unutar dijaloga ne smije doprijeti do pozadine i zatvoriti ga -->
+      <div class="survey-form-card modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Nova firma</h3>
+          <button type="button" class="icon-button" title="Zatvori" (click)="closeAddDialog()">✕</button>
+        </div>
+        <!-- Radnje stoje GORE DESNO, iznad polja: dijalog se ne mora prolistati do dna da bi
+             se vidjelo čime se potvrđuje. -->
+        <div class="form-actions">
+          <button type="button" class="secondary" (click)="closeAddDialog()">Odustani</button>
+          <button type="button" class="primary" (click)="add()">Dodaj firmu</button>
+        </div>
+        @if (dialogError()) {
+          <p class="error dialog-error">{{ dialogError() }}</p>
+        }
+        <div class="form-grid">
+          <label class="form-field">
+            <span class="form-field-label">Naziv firme</span>
+            <input
+              type="text"
+              [ngModel]="newName()"
+              (ngModelChange)="newName.set($event)"
+              (keyup.enter)="add()"
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="actions-col"></th>
+          <th>ID</th>
+          <th>Naziv</th>
+          <th>Aktivna</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (company of companies(); track company.id) {
+          <tr>
+            <td>
+              <div class="row-icon-actions">
+                @if (editingId() === company.id) {
+                  <button type="button" class="icon-button icon-edit" title="Spremi" (click)="saveEdit(company.id)">✓</button>
+                  <button type="button" class="icon-button" title="Odustani" (click)="cancelEdit()">✕</button>
+                } @else {
+                  <button type="button" class="icon-button icon-edit" title="Preimenuj" (click)="startEdit(company)">✎</button>
+                  <button type="button" class="icon-button icon-delete" title="Arhiviraj" (click)="remove(company)">✕</button>
+                }
+              </div>
+            </td>
+            <td>{{ company.id }}</td>
+            <td>
+              @if (editingId() === company.id) {
+                <input
+                  type="text"
+                  [ngModel]="editName()"
+                  (ngModelChange)="editName.set($event)"
+                  (keyup.enter)="saveEdit(company.id)"
+                />
+              } @else {
+                {{ company.name }}
+              }
+            </td>
+            <td>
+              @if (activeCompanyId() === company.id) {
+                <span class="active-badge">aktivna</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">Još nema firmi. Dodaj prvu gumbom iznad.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Arhiva se prikazuje samo kad u njoj nešto ima: prazna tablica bi svaki dan
+       podsjećala na radnju koja se izvodi jednom godišnje. -->
+  @if (archived().length) {
+    <h3 class="archive-heading">Arhivirane firme</h3>
+    <p class="screen-intro">
+      Podaci ovih firmi su netaknuti, ali se nitko iz njih ne može prijaviti.
+      „Vrati" ih vraća u rad; „Isprazni trajno" briše sve njihove obrasce, zapise,
+      priloge i korisnike i <strong>ne može se poništiti</strong>.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="actions-col"></th>
+            <th>ID</th>
+            <th>Naziv</th>
+            <th>Arhivirana</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (company of archived(); track company.id) {
+            <tr>
+              <td>
+                <div class="row-icon-actions">
+                  <button type="button" class="secondary small-button" (click)="restore(company)">Vrati</button>
+                  <button type="button" class="danger small-button" (click)="openPurgeDialog(company)">Isprazni trajno</button>
+                </div>
+              </td>
+              <td>{{ company.id }}</td>
+              <td>{{ company.name }}</td>
+              <td>{{ archivedAt(company) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (purgeTarget(); as target) {
+    <div class="modal-backdrop" (click)="closePurgeDialog()">
+      <div class="survey-form-card modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Trajno isprazniti firmu?</h3>
+          <button type="button" class="icon-button" title="Zatvori" (click)="closePurgeDialog()">✕</button>
+        </div>
+        @if (dialogError()) {
+          <p class="error dialog-error">{{ dialogError() }}</p>
+        }
+        <p>
+          Brišu se svi obrasci, zapisi, prilozi, šifrarnici i korisnici firme
+          <strong>{{ target.name }}</strong>. <strong>Ovo se ne može poništiti.</strong>
+          Dnevnik se zadržava.
+        </p>
+        <div class="form-grid">
+          <label class="form-field">
+            <span class="form-field-label">Za potvrdu upiši naziv firme: {{ target.name }}</span>
+            <input
+              type="text"
+              [ngModel]="purgeConfirmation()"
+              (ngModelChange)="purgeConfirmation.set($event)"
+              (keyup.enter)="purge()"
+            />
+          </label>
+        </div>
+        <!-- Jedini dijalog u kojem radnje ostaju NA DNU. Ostali su obrasci, pa se gumb traži
+             gore; ovaj je potvrda, a gumb koji briše ne smije stajati iznad rečenice koja
+             kaže što briše ni iznad polja u koje se upisuje potvrda. -->
+        <div class="form-actions">
+          <button type="button" class="secondary" (click)="closePurgeDialog()">Odustani</button>
+          <button type="button" class="danger" (click)="purge()">Isprazni trajno</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

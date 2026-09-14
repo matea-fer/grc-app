@@ -1,0 +1,22 @@
+-- Arhiviranje firme umjesto brisanja (10.08.2026.).
+--
+-- ZASTO V3, a ne V2: broj 2 je u razvojnoj bazi vec zauzet. Migracija
+-- V2__ukini_tip_gumb.sql izvrsena je 06.08.2026. u 18:02, a njezina je datoteka istog dana
+-- vracena `git checkout`-om (odustalo se od micanja tipa "gumb") i nikad nije commitana.
+-- Baza je zadrzala redak u flyway_schema_history za skriptu koje vise nema. Ponovna
+-- upotreba broja 2 bila bi gora nego preskok: `flyway repair` bi tada MOJ kontrolni zbroj
+-- upisao u postojeci redak i time ovu migraciju proglasio vec izvrsenom - stupac
+-- deleted_at nikad ne bi nastao, a nista ne bi javilo gresku.
+--
+-- Brisanje firme je do sada bilo nepovratno, a povlacilo je za sobom i brisanje njezinih
+-- korisnika. Od sada je brisanje dvokoracno: firma se prvo ARHIVIRA (deleted_at dobije
+-- vrijeme), a tek zasebna, izricita radnja fizicki uklanja njezine podatke.
+--
+-- NULL znaci "aktivna" i to je namjerno: svi zatecni retci time automatski ostaju aktivni,
+-- bez ijednog UPDATE-a. Obrnuta zastavica (boolean archived NOT NULL DEFAULT false) trazila
+-- bi ispis vremena u zaseban stupac ili bi ga izgubila; ovako je jedan stupac i odgovor na
+-- "je li arhivirana" i odgovor na "kada".
+--
+-- Indeksa nema: tablica firmi ima desetke redaka, pa bi indeks kostao vise nego sto donosi.
+
+ALTER TABLE public.company ADD COLUMN deleted_at timestamp(6) with time zone;

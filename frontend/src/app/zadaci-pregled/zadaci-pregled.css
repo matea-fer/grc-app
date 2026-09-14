@@ -1,0 +1,100 @@
+/* Boje iz tokena teme (styles.css) - nijedan hex ovdje. Pločice (.kpi-*) su iste kao
+   na ploči KPI-jeva, ali stilovi komponente su u Angularu ograničeni na komponentu, pa
+   se ovdje ponavljaju. */
+
+.mode-switch {
+  display: inline-flex;
+  gap: 4px;
+}
+
+/* Aktivan način: naglašena podloga, kao „ovdje si" - ne glavna radnja (nije plavi gumb). */
+.mode-switch .small-button.active {
+  color: var(--boja-akcent-2);
+  background: var(--boja-akcent-tiha);
+  border-color: var(--boja-akcent);
+}
+
+.parent-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
+.parent-picker select {
+  min-height: 32px;
+  min-width: 16rem;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--boja-tekst);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+.parent-picker select:focus {
+  border-color: var(--boja-akcent);
+  outline: none;
+}
+
+/* --- KPI pločice --- */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.kpi-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 1rem 1.25rem;
+  background-color: var(--boja-povrsina);
+  background-image: var(--traka-kartice);
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  border: 1px solid var(--boja-rub);
+  border-radius: var(--radijus);
+  box-shadow: var(--sjena-kartica);
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--boja-akcent-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
+/* Pločica „u kašnjenju" kad ih ima - crvenkasti rub i brojka, jer je to znak za akciju. */
+.kpi-alarm {
+  border-color: var(--boja-greska);
+  background-color: var(--boja-greska-tiha);
+}
+
+.kpi-alarm .kpi-value {
+  color: var(--boja-greska-tekst);
+}
+
+/* --- tablica --- */
+.red-overdue > td:first-child {
+  box-shadow: inset 3px 0 0 var(--boja-greska-tekst);
+}
+
+.overdue-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--boja-greska-tekst);
+  background: var(--boja-greska-tiha);
+  border: 1px solid var(--boja-greska);
+  border-radius: var(--radijus-pilula);
+}

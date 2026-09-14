@@ -1,0 +1,90 @@
+<div class="screen">
+  <h2>Dnevnik</h2>
+  <p class="screen-intro">
+    Izmjene i prijave nad aktivnom firmom, najnovije prvo. Čitanja se ne bilježe.
+  </p>
+
+  @if (activeCompanyId() === null) {
+    <p>Odaberi firmu u gornjoj traci.</p>
+  } @else {
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    @if (loading()) {
+      <p>Učitavanje…</p>
+    }
+
+    <!-- Oba filtra radi baza: sa stranicama bi filtriranje u pregledniku prosijalo samo
+         trenutnu stranicu i tvrdilo da starijeg nema. -->
+    <div class="filter-bar">
+      <label>
+        <span>Od datuma:</span>
+        <input
+          type="date"
+          [ngModel]="fromDate()"
+          (ngModelChange)="fromDate.set($event); onFilterChange()"
+        />
+      </label>
+
+      <label>
+        <span>Akcija:</span>
+        <select [ngModel]="actionFilter()" (ngModelChange)="actionFilter.set($event); onFilterChange()">
+          <option value="">— sve —</option>
+          @for (action of knownActions; track action) {
+            <option [value]="action">{{ actionLabel(action) }}</option>
+          }
+        </select>
+      </label>
+
+      @if (fromDate() || actionFilter()) {
+        <button type="button" class="pager-button" (click)="fromDate.set(''); actionFilter.set(''); onFilterChange()">
+          Poništi filtre
+        </button>
+      }
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Vrijeme</th>
+            <th>Korisnik</th>
+            <th>Akcija</th>
+            <th class="detail-col">Detalj</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of entries(); track entry.id) {
+            <tr>
+              <td>{{ formatTime(entry.createdAt) }}</td>
+              <td>{{ entry.username ?? '—' }}</td>
+              <td>{{ actionLabel(entry.action) }}</td>
+              <td class="detail-col">{{ entry.detail }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">Nema zabilježenih akcija za zadani upit.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalElements() > 0) {
+      <div class="pager">
+        <span class="pager-range">{{ rangeFrom() }}–{{ rangeTo() }} od {{ totalElements() }}</span>
+
+        @if (totalPages() > 1) {
+          <button type="button" class="pager-button" [disabled]="page() === 0" (click)="goToPage(page() - 1)">‹</button>
+          <span class="pager-range">Stranica {{ page() + 1 }} / {{ totalPages() }}</span>
+          <button
+            type="button"
+            class="pager-button"
+            [disabled]="page() >= totalPages() - 1"
+            (click)="goToPage(page() + 1)"
+          >›</button>
+        }
+      </div>
+    }
+  }
+</div>

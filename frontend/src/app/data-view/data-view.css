@@ -1,0 +1,204 @@
+/* Prazno stanje nije greška nego uputa - stoji na istoj bijeloj plohi kao i tablica
+   koja će doći na njegovo mjesto, da ekran ne poskoči kad se podaci pojave. */
+.empty-state {
+  margin: 0;
+  padding: 2rem;
+  text-align: center;
+  color: var(--boja-tekst-prigusen);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub);
+  border-radius: var(--radijus);
+}
+
+.template-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
+.template-picker select,
+.filter-select,
+.search-input {
+  min-height: 32px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--boja-tekst);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+.template-picker select:focus,
+.filter-select:focus,
+.search-input:focus {
+  border-color: var(--boja-akcent);
+  outline: none;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* readOnly stupac se ni u retku koji se upisuje ne nudi na unos - pokazuje se
+   vrijednost koju će zapis dobiti (izgled samog retka je u styles.css) */
+.readonly-cell {
+  color: var(--boja-tekst-prigusen);
+  font-style: italic;
+}
+
+/* traka s pretragom gura gumb za dodavanje na desni rub; na ekranima bez pretrage
+   gumb stoji lijevo, pa poravnanje pripada ovom ekranu, a ne globalnom stilu */
+.toolbar .add-toggle-button {
+  margin-left: auto;
+}
+
+/* Filtri stoje ispod trake, jedan po retku - dodaju se i miču pojedinačno, a svaki
+   dodatno SUŽAVA rezultat (spojeni su s I). */
+.filter-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-row .search-input {
+  flex: 0 1 22rem;
+}
+
+/* Odabir zapisa u filtru je isti gumb kao u formi, ali ovdje stoji u retku uz ostale
+   kontrole - ne rasteže se preko cijele širine kao polje u obrascu. */
+.filter-row .picker-button {
+  width: auto;
+  flex: 0 1 22rem;
+}
+
+/* Sortira se klikom na zaglavlje; stupci koji nemaju po čemu biti poredani (gumb,
+   datoteka, popis šifara) ne dobivaju ni pokazivač ni podcrtu. */
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sortable:hover {
+  color: var(--boja-akcent);
+}
+
+/* „↕” na svakom stupcu koji se da sortirati stoji blijedo i prije klika - to je jedini
+   znak da je zaglavlje uopće klikabilno. Odabrani stupac dobiva boju i pravu strelicu. */
+.sort-mark {
+  margin-left: 4px;
+  font-size: 11px;
+  color: var(--boja-rub-polja);
+}
+
+.sort-mark-active {
+  color: var(--boja-akcent-2);
+}
+
+/* Traka stranica. Raspon ("1–50 od 1.234") stoji lijevo jer odgovara na pitanje koje se
+   postavlja prvo: koliko toga uopće ima. */
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 0.75rem;
+}
+
+.pager-range {
+  margin-right: auto;
+  color: var(--boja-tekst-prigusen);
+  font-size: 13px;
+}
+
+/* Oblik gumba dolazi iz globalnog stila; stranica je broj, pa je uža i tiša od
+   gumba koji nose natpis radnje. */
+.pager-button {
+  min-width: 28px;
+  padding: 3px 6px;
+  font-weight: normal;
+  border-color: var(--boja-rub-polja);
+}
+
+/* Stranica na kojoj si nosi istu ispunu i isti sjaj kao glavni gumb - oboje su
+   „ovo je sada aktivno", pa ne trebaju dva različita jezika. */
+.pager-current {
+  color: var(--boja-akcent-tekst);
+  background: var(--gradijent-akcent);
+  border-color: transparent;
+  box-shadow: var(--sjaj-akcent);
+  font-weight: 600;
+}
+
+.pager-gap {
+  color: var(--boja-tekst-prigusen);
+}
+
+/* Traka suženja ("prikazan je samo zapis #12"). Plava, a ne crvena: ovo nije greška nego
+   pogled koji je korisnik sam zatražio - i iz kojeg mora vidjeti put natrag. */
+.focus-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: var(--boja-akcent-tiha);
+  border: 1px solid var(--boja-akcent);
+  border-radius: var(--radijus);
+}
+
+.focus-clear {
+  margin-left: auto;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--boja-akcent);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-akcent);
+  border-radius: var(--radijus);
+  cursor: pointer;
+}
+
+/* Zaključan redak: sadržaj ostaje čitljiv (i dalje je to podatak koji netko gleda),
+   ali se vidi da nije radna verzija. Onemogućeni gumbi su sami po sebi blijedi, pa
+   podloga nosi razliku umjesto da se tekst sivi. */
+.locked-row > td,
+.locked-row:hover > td {
+  background: var(--boja-povrsina-tiha);
+}
+
+.lock-mark {
+  font-size: 13px;
+  cursor: default;
+}
+
+/* gumb koji otključava nije ista radnja kao onaj koji zaključava - i ne smije se
+   kliknuti u prolazu misleći da se šalje dalje */
+.cell-button-locked {
+  color: var(--boja-upozorenje);
+  border-color: var(--boja-upozorenje);
+}
+
+/* Broj poveznica na samom gumbu - da se ne mora otvarati dijalog da bi se vidjelo ima li ih. */
+.cell-button-count {
+  display: inline-block;
+  min-width: 18px;
+  margin-left: 5px;
+  padding: 0 4px;
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus-pilula);
+  background: var(--boja-akcent-tiha);
+  color: var(--boja-akcent-2);
+  font-size: 11px;
+  text-align: center;
+}

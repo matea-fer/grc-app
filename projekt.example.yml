@@ -1,0 +1,25 @@
+# Kickoff parametri za novu aplikaciju iz ovog kostura.
+# Kopiraj u projekt.yml, popuni, i AI ovo pročita umjesto da te ispituje.
+#   cp projekt.example.yml projekt.yml
+
+# Ime aplikacije (koristi se za kontejner baze i sl.)
+app_name: moja-app
+
+# Base paket. Kostur dolazi s com.example.demo; preimenovanje je neobavezan korak
+# koji radi AI (vidi README, "Rebranding").
+base_package: com.example.demo
+
+# Grupa / tenant: kome podaci pripadaju. Naziv koji se drži dosljedno.
+group_term: firma          # firma | ustanova | klijent | ...
+multi_group: true          # ima li aplikacija više grupa (true) ili jednu (false)
+
+# Baza — svaka aplikacija svoju. Ako dižeš više njih paralelno, jedinstven db_port.
+db_name: moja_app_db
+db_port: 5432
+
+# Frontend
+frontend_port: 4200
+
+# Kratak opis domene (za kasniji korak domain-seed, NE za kostur):
+domena: |
+  npr. "veterinarska ambulanta: pacijenti, pregledi, cjepiva"

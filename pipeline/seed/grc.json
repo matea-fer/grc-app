@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "group": { "name": "Demo GRC d.o.o." },
+
+  "codebooks": [
+    { "code": "kategorije_rizika", "name": "Kategorije rizika", "scope": "TENANT", "items": [
+      { "code": "operativni", "name": "Operativni" },
+      { "code": "financijski", "name": "Financijski" },
+      { "code": "reputacijski", "name": "Reputacijski" },
+      { "code": "it_sigurnost", "name": "IT / Informacijska sigurnost" },
+      { "code": "uskladenost", "name": "Usklađenost (compliance)" },
+      { "code": "strateski", "name": "Strateški" }
+    ]},
+    { "code": "razine_rizika", "name": "Razine rizika", "scope": "TENANT", "items": [
+      { "code": "nizak", "name": "Nizak" },
+      { "code": "srednji", "name": "Srednji" },
+      { "code": "visok", "name": "Visok" },
+      { "code": "kritican", "name": "Kritičan" }
+    ]},
+    { "code": "statusi_rizika", "name": "Statusi rizika", "scope": "TENANT", "items": [
+      { "code": "otvoren", "name": "Otvoren" },
+      { "code": "u_obradi", "name": "U obradi" },
+      { "code": "umanjen", "name": "Umanjen" },
+      { "code": "prihvacen", "name": "Prihvaćen" },
+      { "code": "zatvoren", "name": "Zatvoren" }
+    ]},
+    { "code": "vrste_imovine", "name": "Vrste imovine", "scope": "TENANT", "items": [
+      { "code": "posluzitelj", "name": "Poslužitelj" },
+      { "code": "aplikacija", "name": "Aplikacija" },
+      { "code": "baza_podataka", "name": "Baza podataka" },
+      { "code": "mrezna_oprema", "name": "Mrežna oprema" },
+      { "code": "radna_stanica", "name": "Radna stanica" },
+      { "code": "podatkovni_skup", "name": "Podatkovni skup" },
+      { "code": "usluga", "name": "Usluga" },
+      { "code": "fizicka", "name": "Fizička imovina" }
+    ]},
+    { "code": "lokacije", "name": "Lokacije", "scope": "TENANT", "items": [
+      { "code": "dc_zagreb", "name": "Podatkovni centar Zagreb" },
+      { "code": "ured_zagreb", "name": "Ured Zagreb" },
+      { "code": "ured_split", "name": "Ured Split" },
+      { "code": "cloud", "name": "Oblak (Cloud)" }
+    ]},
+    { "code": "statusi_imovine", "name": "Statusi imovine", "scope": "TENANT", "items": [
+      { "code": "aktivna", "name": "Aktivna" },
+      { "code": "u_pripremi", "name": "U pripremi" },
+      { "code": "povucena", "name": "Povučena" }
+    ]},
+    { "code": "kategorije_dobavljaca", "name": "Kategorije dobavljača", "scope": "TENANT", "items": [
+      { "code": "it_usluge", "name": "IT usluge" },
+      { "code": "konzalting", "name": "Konzalting" },
+      { "code": "odrzavanje", "name": "Održavanje" },
+      { "code": "cloud_hosting", "name": "Cloud / Hosting" },
+      { "code": "telekom", "name": "Telekomunikacije" },
+      { "code": "ostalo", "name": "Ostalo" }
+    ]},
+    { "code": "razine_kriticnosti", "name": "Razine kritičnosti", "scope": "TENANT", "items": [
+      { "code": "niska", "name": "Niska" },
+      { "code": "srednja", "name": "Srednja" },
+      { "code": "visoka", "name": "Visoka" },
+      { "code": "kriticna", "name": "Kritična" }
+    ]},
+    { "code": "statusi_dobavljaca", "name": "Statusi dobavljača", "scope": "TENANT", "items": [
+      { "code": "aktivan", "name": "Aktivan" },
+      { "code": "u_procjeni", "name": "U procjeni" },
+      { "code": "neaktivan", "name": "Neaktivan" }
+    ]},
+    { "code": "statusi_samoprocjene", "name": "Statusi samoprocjene", "scope": "TENANT", "items": [
+      { "code": "planirana", "name": "Planirana" },
+      { "code": "u_tijeku", "name": "U tijeku" },
+      { "code": "zavrsena", "name": "Završena" },
+      { "code": "odgodena", "name": "Odgođena" }
+    ]},
+    { "code": "ocjene_sukladnosti", "name": "Ocjene sukladnosti", "scope": "TENANT", "items": [
+      { "code": "sukladno", "name": "Sukladno" },
+      { "code": "djelomicno", "name": "Djelomično sukladno" },
+      { "code": "nesukladno", "name": "Nesukladno" },
+      { "code": "nije_primjenjivo", "name": "Nije primjenjivo" }
+    ]},
+    { "code": "prioriteti", "name": "Prioriteti", "scope": "TENANT", "items": [
+      { "code": "nizak", "name": "Nizak" },
+      { "code": "srednji", "name": "Srednji" },
+      { "code": "visok", "name": "Visok" },
+      { "code": "kritican", "name": "Kritičan" }
+    ]},
+    { "code": "statusi_zadatka", "name": "Statusi zadatka", "scope": "TENANT", "items": [
+      { "code": "otvoren", "name": "Otvoren" },
+      { "code": "u_tijeku", "name": "U tijeku" },
+      { "code": "zavrsen", "name": "Završen" },
+      { "code": "kasni", "name": "Kasni" }
+    ]},
+
+    { "code": "okviri", "name": "Okviri i standardi", "scope": "GLOBAL",
+      "_zasto": "Standardi (ISO, GDPR, NIS2, DORA) su isti za sve grupe -> GLOBAL po dogovoru.", "items": [
+      { "code": "iso_27001", "name": "ISO/IEC 27001" },
+      { "code": "iso_22301", "name": "ISO 22301 (kontinuitet)" },
+      { "code": "gdpr", "name": "GDPR" },
+      { "code": "nis2", "name": "NIS2" },
+      { "code": "dora", "name": "DORA" },
+      { "code": "iso_9001", "name": "ISO 9001" }
+    ]},
+    { "code": "klasifikacija", "name": "Klasifikacija povjerljivosti", "scope": "GLOBAL",
+      "_zasto": "Jedinstvena politika klasifikacije nad svim grupama -> GLOBAL po dogovoru.", "items": [
+      { "code": "javno", "name": "Javno" },
+      { "code": "interno", "name": "Interno" },
+      { "code": "povjerljivo", "name": "Povjerljivo" },
+      { "code": "strogo_povjerljivo", "name": "Strogo povjerljivo" }
+    ]}
+  ],
+
+  "templates": [
+    { "key": "dobavljaci", "name": "Dobavljači", "columns": [
+      { "key": "naziv", "label": "Naziv", "type": "string", "required": true },
+      { "key": "oib", "label": "OIB", "type": "string", "unique": true },
+      { "key": "kontakt_osoba", "label": "Kontakt osoba", "type": "string" },
+      { "key": "email", "label": "E-pošta", "type": "string" },
+      { "key": "kategorija", "label": "Kategorija", "type": "codebook", "codebook": "kategorije_dobavljaca" },
+      { "key": "kriticnost", "label": "Kritičnost", "type": "codebook", "codebook": "razine_kriticnosti" },
+      { "key": "status", "label": "Status", "type": "codebook", "codebook": "statusi_dobavljaca" }
+    ]},
+    { "key": "imovina", "name": "Upravljanje imovinom", "columns": [
+      { "key": "naziv", "label": "Naziv", "type": "string", "required": true },
+      { "key": "vrsta", "label": "Vrsta", "type": "codebook", "codebook": "vrste_imovine" },
+      { "key": "vlasnik", "label": "Vlasnik", "type": "string" },
+      { "key": "lokacija", "label": "Lokacija", "type": "codebook", "codebook": "lokacije" },
+      { "key": "klasifikacija", "label": "Klasifikacija", "type": "codebook", "codebook": "klasifikacija" },
+      { "key": "status", "label": "Status", "type": "codebook", "codebook": "statusi_imovine" },
+      { "key": "dobavljac", "label": "Dobavljač", "type": "reference", "reference": "dobavljaci", "display": "naziv", "onTargetDelete": "clear" }
+    ]},
+    { "key": "rizici", "name": "Rizici", "columns": [
+      { "key": "naziv", "label": "Naziv rizika", "type": "string", "required": true },
+      { "key": "opis", "label": "Opis", "type": "string" },
+      { "key": "kategorija", "label": "Kategorija", "type": "codebook", "codebook": "kategorije_rizika" },
+      { "key": "vlasnik", "label": "Vlasnik rizika", "type": "string" },
+      { "key": "vjerojatnost", "label": "Vjerojatnost (1-5)", "type": "number", "numberMode": "int", "min": 1, "max": 5 },
+      { "key": "ucinak", "label": "Učinak (1-5)", "type": "number", "numberMode": "int", "min": 1, "max": 5 },
+      { "key": "rezultat", "label": "Rezultat (P×U)", "type": "formula", "formula": "[vjerojatnost] * [ucinak]" },
+      { "key": "razina", "label": "Razina rizika", "type": "codebook", "codebook": "razine_rizika" },
+      { "key": "status", "label": "Status", "type": "codebook", "codebook": "statusi_rizika" },
+      { "key": "datum_procjene", "label": "Datum procjene", "type": "date" },
+      { "key": "povezana_imovina", "label": "Povezana imovina", "type": "reference", "reference": "imovina", "display": "naziv", "onTargetDelete": "clear" }
+    ]},
+    { "key": "samoprocjena", "name": "Samoprocjena", "columns": [
+      { "key": "naziv", "label": "Naziv", "type": "string", "required": true },
+      { "key": "okvir", "label": "Okvir / standard", "type": "codebook", "codebook": "okviri" },
+      { "key": "datum", "label": "Datum", "type": "date" },
+      { "key": "odgovorna_osoba", "label": "Odgovorna osoba", "type": "string" },
+      { "key": "status", "label": "Status", "type": "codebook", "codebook": "statusi_samoprocjene" },
+      { "key": "ocjena", "label": "Ocjena sukladnosti", "type": "codebook", "codebook": "ocjene_sukladnosti" },
+      { "key": "rezultat_postotak", "label": "Rezultat (%)", "type": "number", "numberMode": "int", "min": 0, "max": 100 },
+      { "key": "povezani_rizik", "label": "Povezani rizik", "type": "reference", "reference": "rizici", "display": "naziv", "onTargetDelete": "clear" }
+    ]},
+    { "key": "zadaci", "name": "Zadaci", "columns": [
+      { "key": "naziv", "label": "Naziv", "type": "string", "required": true },
+      { "key": "opis", "label": "Opis", "type": "string" },
+      { "key": "nositelj", "label": "Nositelj", "type": "string" },
+      { "key": "rok", "label": "Rok", "type": "date" },
+      { "key": "prioritet", "label": "Prioritet", "type": "codebook", "codebook": "prioriteti" },
+      { "key": "status", "label": "Status", "type": "codebook", "codebook": "statusi_zadatka" },
+      { "key": "povezani_rizik", "label": "Povezani rizik", "type": "reference", "reference": "rizici", "display": "naziv", "onTargetDelete": "clear" },
+      { "key": "povezana_samoprocjena", "label": "Povezana samoprocjena", "type": "reference", "reference": "samoprocjena", "display": "naziv", "onTargetDelete": "clear" }
+    ]}
+  ],
+
+  "sampleRowsOrder": ["dobavljaci", "imovina", "rizici", "samoprocjena", "zadaci"],
+  "sampleRows": {
+    "dobavljaci": [
+      { "_key": "d1", "naziv": "CloudHost d.o.o.", "oib": "12345678901", "kontakt_osoba": "Ivan Horvat", "email": "ivan@cloudhost.hr", "kategorija": "cloud_hosting", "kriticnost": "visoka", "status": "aktivan" },
+      { "_key": "d2", "naziv": "SecureIT j.d.o.o.", "oib": "09876543210", "kontakt_osoba": "Maja Kovač", "email": "maja@secureit.hr", "kategorija": "it_usluge", "kriticnost": "srednja", "status": "aktivan" },
+      { "_key": "d3", "naziv": "Uredska Oprema d.o.o.", "oib": "01122334455", "kontakt_osoba": "Petar Marić", "email": "petar@uredska.hr", "kategorija": "odrzavanje", "kriticnost": "niska", "status": "u_procjeni" }
+    ],
+    "imovina": [
+      { "_key": "a1", "naziv": "Produkcijski poslužitelj PROD-01", "vrsta": "posluzitelj", "vlasnik": "IT odjel", "lokacija": "dc_zagreb", "klasifikacija": "povjerljivo", "status": "aktivna", "dobavljac": "d1" },
+      { "_key": "a2", "naziv": "CRM aplikacija", "vrsta": "aplikacija", "vlasnik": "Prodaja", "lokacija": "cloud", "klasifikacija": "interno", "status": "aktivna", "dobavljac": "d2" },
+      { "_key": "a3", "naziv": "Baza kupaca", "vrsta": "baza_podataka", "vlasnik": "IT odjel", "lokacija": "dc_zagreb", "klasifikacija": "strogo_povjerljivo", "status": "aktivna", "dobavljac": "d1" },
+      { "_key": "a4", "naziv": "Mrežni preklopnik SW-Core", "vrsta": "mrezna_oprema", "vlasnik": "IT odjel", "lokacija": "dc_zagreb", "klasifikacija": "interno", "status": "aktivna" }
+    ],
+    "rizici": [
+      { "_key": "r1", "naziv": "Curenje osobnih podataka kupaca", "opis": "Neovlašten pristup bazi kupaca", "kategorija": "it_sigurnost", "vlasnik": "CISO", "vjerojatnost": 3, "ucinak": 5, "razina": "visok", "status": "u_obradi", "datum_procjene": "2026-02-10", "povezana_imovina": "a3" },
+      { "_key": "r2", "naziv": "Ispad produkcijskog poslužitelja", "opis": "Nedostupnost ključne infrastrukture", "kategorija": "operativni", "vlasnik": "IT odjel", "vjerojatnost": 2, "ucinak": 4, "razina": "srednji", "status": "otvoren", "datum_procjene": "2026-03-01", "povezana_imovina": "a1" },
+      { "_key": "r3", "naziv": "Nedostupnost CRM-a (SaaS)", "opis": "Ovisnost o vanjskom pružatelju", "kategorija": "operativni", "vlasnik": "Prodaja", "vjerojatnost": 2, "ucinak": 3, "razina": "srednji", "status": "otvoren", "datum_procjene": "2026-03-05", "povezana_imovina": "a2" },
+      { "_key": "r4", "naziv": "Neusklađenost s GDPR-om", "opis": "Nepotpuna evidencija aktivnosti obrade", "kategorija": "uskladenost", "vlasnik": "DPO", "vjerojatnost": 3, "ucinak": 4, "razina": "visok", "status": "otvoren", "datum_procjene": "2026-01-20", "povezana_imovina": "a3" },
+      { "_key": "r5", "naziv": "Ovisnost o ključnom dobavljaču", "opis": "Koncentracijski rizik nabave", "kategorija": "strateski", "vlasnik": "Nabava", "vjerojatnost": 2, "ucinak": 3, "razina": "srednji", "status": "prihvacen", "datum_procjene": "2026-02-28" }
+    ],
+    "samoprocjena": [
+      { "_key": "s1", "naziv": "ISO 27001 godišnja samoprocjena 2026", "okvir": "iso_27001", "datum": "2026-02-15", "odgovorna_osoba": "CISO", "status": "u_tijeku", "ocjena": "djelomicno", "rezultat_postotak": 72, "povezani_rizik": "r1" },
+      { "_key": "s2", "naziv": "GDPR procjena usklađenosti", "okvir": "gdpr", "datum": "2026-01-25", "odgovorna_osoba": "DPO", "status": "zavrsena", "ocjena": "djelomicno", "rezultat_postotak": 65, "povezani_rizik": "r4" },
+      { "_key": "s3", "naziv": "NIS2 procjena spremnosti", "okvir": "nis2", "datum": "2026-03-10", "odgovorna_osoba": "CISO", "status": "planirana", "ocjena": "nije_primjenjivo", "rezultat_postotak": 0 },
+      { "_key": "s4", "naziv": "DORA operativna otpornost", "okvir": "dora", "datum": "2026-03-12", "odgovorna_osoba": "IT odjel", "status": "u_tijeku", "ocjena": "djelomicno", "rezultat_postotak": 48 }
+    ],
+    "zadaci": [
+      { "_key": "z1", "naziv": "Uvesti enkripciju baze kupaca", "opis": "Enkripcija u mirovanju za bazu kupaca", "nositelj": "IT odjel", "rok": "2026-04-30", "prioritet": "visok", "status": "u_tijeku", "povezani_rizik": "r1" },
+      { "_key": "z2", "naziv": "Uspostaviti DR za PROD-01", "opis": "Plan oporavka od katastrofe", "nositelj": "IT odjel", "rok": "2026-05-15", "prioritet": "srednji", "status": "otvoren", "povezani_rizik": "r2" },
+      { "_key": "z3", "naziv": "Ažurirati evidenciju obrade (GDPR)", "opis": "Dopuna zapisa aktivnosti obrade", "nositelj": "DPO", "rok": "2026-02-28", "prioritet": "visok", "status": "kasni", "povezani_rizik": "r4", "povezana_samoprocjena": "s2" },
+      { "_key": "z4", "naziv": "Provesti NIS2 gap analizu", "opis": "Analiza odstupanja prema NIS2", "nositelj": "CISO", "rok": "2026-04-10", "prioritet": "srednji", "status": "otvoren", "povezana_samoprocjena": "s3" },
+      { "_key": "z5", "naziv": "Definirati SLA s CloudHost", "opis": "Ugovorni SLA za dostupnost CRM-a", "nositelj": "Nabava", "rok": "2026-03-31", "prioritet": "srednji", "status": "u_tijeku", "povezani_rizik": "r3" }
+    ]
+  }
+}

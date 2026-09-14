@@ -1,0 +1,119 @@
+<h2>KPI samoprocjena</h2>
+<p class="screen-intro">
+  Pregled samoprocjena odabrane firme: pokrivenost, prosječna sukladnost i raspodjela po
+  statusu, ocjeni i okviru. Podaci se računaju iz obrasca „Samoprocjena".
+</p>
+
+@if (activeCompanyId() === null) {
+  <p class="screen-intro">Odaberite firmu u gornjoj traci da vidite pokazatelje.</p>
+} @else if (missing()) {
+  <div class="column-scope-warning">
+    Ova firma nema obrazac „Samoprocjena" pa nema što prikazati. Uvezite domenu (skill
+    domain-seed) ili dodajte obrazac u Editoru.
+  </div>
+} @else if (error(); as message) {
+  <p class="error">{{ message }}</p>
+} @else if (loading()) {
+  <p class="screen-intro">Učitavanje…</p>
+} @else {
+  <!-- KPI pločice -->
+  <div class="kpi-row">
+    <div class="kpi-tile">
+      <span class="kpi-value">{{ ukupno() }}</span>
+      <span class="kpi-label">Ukupno samoprocjena</span>
+    </div>
+    <div class="kpi-tile">
+      <span class="kpi-value">{{ prosjek() === null ? '—' : prosjek() + '%' }}</span>
+      <span class="kpi-label">Prosječni rezultat</span>
+    </div>
+    <div class="kpi-tile">
+      <span class="kpi-value">{{ najnizi() === null ? '—' : najnizi() + '%' }}</span>
+      <span class="kpi-label">Najniži rezultat</span>
+    </div>
+    <div class="kpi-tile">
+      <span class="kpi-value">{{ brojOkvira() }}</span>
+      <span class="kpi-label">Pokriveni okviri</span>
+    </div>
+  </div>
+
+  @if (ukupno() === 0) {
+    <p class="screen-intro">Nema nijedne samoprocjene u ovoj firmi.</p>
+  } @else {
+    <div class="dash-grid">
+      <!-- Raspodjela po statusu -->
+      <section class="survey-form-card">
+        <h3>Po statusu</h3>
+        @for (u of poStatusu(); track u.naziv) {
+          <div class="bar-row">
+            <span class="bar-name">{{ u.naziv }}</span>
+            <span class="bar-track">
+              <span class="bar-fill" [style.width.%]="postotakSirine(u.broj, poStatusu())"></span>
+            </span>
+            <span class="bar-count">{{ u.broj }}</span>
+          </div>
+        }
+      </section>
+
+      <!-- Raspodjela po ocjeni sukladnosti -->
+      <section class="survey-form-card">
+        <h3>Po ocjeni sukladnosti</h3>
+        @for (u of poOcjeni(); track u.naziv) {
+          <div class="bar-row">
+            <span class="bar-name">{{ u.naziv }}</span>
+            <span class="bar-track">
+              <span class="bar-fill" [style.width.%]="postotakSirine(u.broj, poOcjeni())"></span>
+            </span>
+            <span class="bar-count">{{ u.broj }}</span>
+          </div>
+        }
+      </section>
+
+      <!-- Prosječni rezultat po okviru -->
+      <section class="survey-form-card">
+        <h3>Prosječni rezultat po okviru</h3>
+        @for (o of poOkviru(); track o.naziv) {
+          <div class="bar-row">
+            <span class="bar-name">{{ o.naziv }}</span>
+            <span class="bar-track">
+              <span class="bar-fill" [style.width.%]="o.prosjek"></span>
+            </span>
+            <span class="bar-count">{{ o.prosjek }}% ({{ o.broj }})</span>
+          </div>
+        }
+      </section>
+    </div>
+
+    <!-- Samoprocjene koje traže pažnju -->
+    <section class="paznja-section">
+      <h3>Traži pažnju (rezultat ispod {{ 70 }}%)</h3>
+      @if (redoviPaznje().length === 0) {
+        <p class="screen-intro">Nijedna samoprocjena nije ispod praga — sve u redu.</p>
+      } @else {
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Samoprocjena</th>
+                <th>Okvir</th>
+                <th>Status</th>
+                <th>Ocjena</th>
+                <th>Rezultat</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of redoviPaznje(); track $index) {
+                <tr>
+                  <td>{{ r.naziv }}</td>
+                  <td>{{ r.okvir }}</td>
+                  <td>{{ r.status }}</td>
+                  <td>{{ r.ocjena }}</td>
+                  <td class="num-cell">{{ r.rezultat === null ? '—' : r.rezultat + '%' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+}

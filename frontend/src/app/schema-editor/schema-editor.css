@@ -1,0 +1,143 @@
+/* .screen-intro je u globalnom styles.css */
+
+.empty-state {
+  margin: 0;
+  padding: 2rem;
+  text-align: center;
+  color: var(--boja-tekst-prigusen);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub);
+  border-radius: var(--radijus);
+}
+
+/* naziv obrasca u tablici je gumb za odabir (izgleda kao poveznica) */
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--boja-akcent);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.section-heading {
+  margin-top: 2rem;
+}
+
+/* Dijalog stupca ima puno polja, pa se postavke koje ovise o tipu odvajaju naslovom -
+   inače se "Najveća vrijednost" i "Label" čitaju kao da pripadaju istoj skupini. */
+.options-heading {
+  margin: 1.5rem 0 0;
+  font-size: 14px;
+  color: var(--boja-tekst-prigusen);
+}
+
+.options-hint {
+  margin: 0.75rem 0 0;
+}
+
+/* Sažetak postavki je jedini stupac kojem se isplati dopustiti prelamanje - ostali su
+   kratki, a ovaj zna narasti (uzorak, formula). */
+.options-cell {
+  max-width: 22rem;
+  white-space: normal;
+  color: var(--boja-tekst-prigusen);
+  font-size: 13px;
+}
+
+/* zastavice stupca stoje u redu ispod ostalih polja - kratke su, pa im
+   mreža polja (koja računa na puninu stupca) ne odgovara */
+.form-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.flag-cell {
+  text-align: center;
+  color: var(--boja-uspjeh);
+}
+
+/* Odabrani obrazac - stupci ispod pripadaju baš njemu, pa se mora vidjeti na prvi
+   pogled koji je to. Lijeva crta nosi razliku i kad boja pozadine nije dovoljna. */
+.selected-row > td,
+.selected-row:hover > td {
+  background: var(--boja-akcent-tiha);
+}
+
+.selected-row > td:first-child {
+  box-shadow: inset 3px 0 0 var(--boja-akcent);
+}
+
+.selected-row .link-button {
+  font-weight: 600;
+}
+
+/* --- redoslijed stupaca --- */
+
+/* Isti oblik kao kod stavki šifrarnika: hvatište za povlačenje i strelice uz njega.
+   Strelice nisu ukras - povlačenje se ne može odraditi tipkovnicom. */
+.order-col {
+  width: 1%;
+}
+
+/* Ćelija ostaje ĆELIJA, a raspoređuje se div u njoj - isto kao kod susjedne ćelije s ikonama
+   (`.row-icon-actions`). Ranije je `display: flex` stajao na samom `td`-u, što ga izbaci iz
+   tabličnog rasporeda: visina i donji obrub prestanu pratiti redak, pa je stupac izgledao
+   pomaknut u odnosu na ostale. */
+.order-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.drag-handle {
+  padding: 0 4px;
+  color: var(--boja-tekst-prigusen);
+  cursor: grab;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.order-button {
+  padding: 0 2px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--boja-tekst-prigusen);
+}
+
+.order-button:disabled {
+  color: var(--boja-rub);
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+/* redak koji se povlači ostaje vidljiv, ali prigušen - da se vidi odakle je krenuo */
+.dragging-row {
+  opacity: 0.4;
+}
+
+/* Traka stoji IZNAD tablice, uz gumbe: premještanje čeka potvrdu, pa mora biti vidljivo
+   da promjena postoji i kako se poništava. */
+.order-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  border: 1px solid var(--boja-akcent);
+  border-radius: var(--radijus);
+  background: var(--boja-akcent-tiha);
+}

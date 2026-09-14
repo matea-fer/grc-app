@@ -1,0 +1,135 @@
+/* .screen-intro i unos u retku (`td input`) su u globalnom styles.css */
+
+.back-link {
+  padding: 0;
+  margin-bottom: 0.75rem;
+  font: inherit;
+  font-size: 13px;
+  color: var(--boja-akcent);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.scope-badge {
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--boja-naslov);
+  background: var(--boja-znacka);
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus-pilula);
+}
+
+.scope-global {
+  color: var(--boja-upozorenje);
+  background: var(--boja-upozorenje-tiha);
+}
+
+/* šifra je tehnička oznaka - monospace da se razlikuje od naziva */
+.code-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.active-col {
+  width: 1%;
+  text-align: center;
+}
+
+/* ===================== REDOSLIJED ===================== */
+
+.order-col {
+  width: 1%;
+  text-align: center;
+  color: var(--boja-tekst-prigusen);
+  font-weight: normal;
+}
+
+/* Ćelija ostaje ĆELIJA, a raspoređuje se div u njoj - isto kao kod susjedne ćelije s ikonama
+   (`.row-icon-actions`). Ranije je `display: flex` stajao na samom `td`-u, što ga izbaci iz
+   tabličnog rasporeda: visina i donji obrub prestanu pratiti redak, pa je stupac izgledao
+   pomaknut u odnosu na ostale. */
+.order-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.drag-handle {
+  padding: 0 4px;
+  color: var(--boja-tekst-prigusen);
+  cursor: grab;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.order-button {
+  padding: 0 2px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--boja-tekst-prigusen);
+}
+
+.order-button:disabled {
+  color: var(--boja-rub);
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+/* redak koji se povlači ostaje vidljiv, ali prigušen - da se vidi odakle je krenuo */
+.dragging-row {
+  opacity: 0.4;
+}
+
+td:has(input[type='checkbox']) {
+  text-align: center;
+}
+
+/* kvačica u retku je oznaka, ne polje - ne rasteže se preko cijele ćelije */
+td input[type='checkbox'] {
+  width: 16px;
+  min-width: 0;
+}
+
+/* isključena stavka se i dalje vidi, ali je vizualno povučena unatrag */
+.inactive-row {
+  color: var(--boja-tekst-prigusen);
+}
+
+.inactive-row .code-input,
+.inactive-row input[type='text'] {
+  color: var(--boja-tekst-prigusen);
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.editor-spacer {
+  flex: 1;
+}
+
+.dirty-hint {
+  font-size: 13px;
+  color: var(--boja-upozorenje);
+}

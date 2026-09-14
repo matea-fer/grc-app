@@ -1,0 +1,45 @@
+.login-screen {
+  display: flex;
+  justify-content: center;
+  padding-top: 4rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 340px;
+  margin-bottom: 0;
+}
+
+/* polja u prijavi stoje jedno ispod drugog, za razliku od form-grida na ostalim ekranima */
+.login-card .form-field + .form-field {
+  margin-top: 0.75rem;
+}
+
+/* Lozinka nije u globalnom popisu unosa (ondje se nabrajaju tipovi koje obrazac zna
+   ponuditi), a izgledati mora isto kao polje iznad nje. */
+.login-card input[type='password'] {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--boja-tekst);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+.login-card input[type='password']:focus {
+  border-color: var(--boja-akcent);
+  outline: none;
+}
+
+/* Prijava ima jednu jedinu radnju, pa se gumb širi preko cijele kartice - nema
+   drugog izbora uz koji bi se poravnavao. */
+.login-card .form-actions button {
+  width: 100%;
+}
+
+.login-card .error {
+  margin: 0 0 1rem;
+}

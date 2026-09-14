@@ -1,0 +1,968 @@
+/* Zajednički stilovi za sve ekrane. Stilovi komponente su u Angularu ograničeni
+   na tu komponentu, pa sve što dijele tablica i ekran sheme mora biti ovdje.
+
+   Izgled prati postojeću aplikaciju firme (snimke u `pics/` i `Tipovi stupaca/`):
+   guste plosnate tablice na bijeloj plohi, svijetlosiva pozadina stranice, mali
+   radijusi, obrubljeni gumb kao zadani i JEDAN ispunjeni plavi po ekranu. */
+
+/* ===================== BOJE I MJERE =====================
+   Jedino mjesto na kojem stoje boje. Nijedan hex ne smije stajati izvan ovog
+   odjeljka - komponente gledaju isključivo u `var(--…)`.
+
+   Tema je zato samo DRUGI SKUP VRIJEDNOSTI za ista imena tokena. `ThemeService`
+   upisuje `data-tema` na `<html>`, a blokovi niže na to odgovaraju; nijedna
+   komponenta ne zna koliko tema postoji ni koja je uključena.
+
+   Dodavanje teme: dopiši blok ovdje i jedan redak u `TEME` u theme.service.ts.
+   Mora se popuniti CIJELI popis tokena - tema koja preskoči token naslijedi ga
+   iz svijetle, pa se pokvari na jednom ekranu koji nitko ne gleda. */
+
+:root {
+  color-scheme: light;
+
+  /* podloge */
+  --boja-pozadina: #f8f9fb;        /* stranica iza kartica */
+  --boja-povrsina: #ffffff;        /* kartica, tablica, dijalog */
+  --boja-povrsina-tiha: #f5f5f5;   /* zaglavlje tablice, hover retka, isključeno polje */
+  --boja-rub: #e1e1e1;
+  --boja-rub-polja: #c8c8c8;       /* obrub unosa - tamniji od rubova plohe */
+  --boja-znacka: #e7e7e7;         /* pilula, hover ikone - sivo koje nije ni ploha ni rub */
+
+  /* tekst */
+  --boja-tekst: #293740;
+  --boja-tekst-prigusen: #6b7480;  /* natpisi, pomoćni tekst, isključeni gumbi */
+  --boja-naslov: #002f49;          /* naslovi i tekst obrubljenih gumba */
+
+  /* naglasci */
+  --boja-akcent: #1a75bc;          /* ispunjeni gumb, poveznica, fokus */
+  --boja-akcent-tamna: #155f99;
+  --boja-akcent-tiha: #e8f1f9;     /* podloga naglašenog retka ili trake */
+  --boja-akcent-tekst: #ffffff;
+  --boja-akcent-blijeda: #b7c4cc;  /* glavni gumb koji se trenutno ne da pritisnuti */
+  --boja-odabir: #a6cb3e;          /* radio i kvačica */
+
+  /* Drugi naglasak - brojači, značke, oznaka poretka. Postoji da tema ima DVIJE boje,
+     a ne jednu. Firmina tema je jednobojna, pa je ovdje ista plava, samo tamnija:
+     ove oznake stoje na `--boja-akcent-tiha`, a na njoj sama `#1a75bc` daje 4.26:1 -
+     malo premalo za tekst od 12px. */
+  --boja-akcent-2: #155f99;
+
+  /* Ispuna glavnog gumba. Gradijent je zato što jedna tema može htjeti prijelaz, a
+     druga ravnu boju - ravna se piše kao gradijent iz iste boje u istu, pa pravilo
+     u gumbu ostaje jedno. */
+  --gradijent-akcent: linear-gradient(135deg, #1a75bc, #1a75bc);
+  --gradijent-akcent-hover: linear-gradient(135deg, #155f99, #155f99);
+  --sjaj-akcent: none;             /* svjetlucanje oko glavnog gumba - samo tamna tema */
+  --sjena-kartica: none;           /* firmina tema je plosnata: bez sjena osim dijaloga */
+
+  /* Ispuna naslova ekrana. Uvijek gradijent, i u temama koje ga nemaju - ondje je to
+     prijelaz iz iste boje u istu. Tako pravilo u `h2` ostaje JEDNO, a tema odlucuje
+     hoce li naslov biti dvobojan ili obican. */
+  --gradijent-naslova: linear-gradient(135deg, #002f49, #002f49);
+
+  /* Svijetla nit na vrhu kartice i tablice; `none` znaci da je nema. */
+  --traka-kartice: none;
+
+  /* Klizac: `auto` prepusta ga pregledniku, dvije boje ga preuzimaju. */
+  --klizac: auto;
+
+  /* Obrubljeni gumb - onaj kojim se radi SVE osim glavne radnje. U firminoj temi je
+     tamnoplav kao naslovi; tema koja hoce vise boje daje mu svoj naglasak, i time
+     oboji najveci broj elemenata na ekranu odjednom. */
+  --boja-gumb-rub: var(--boja-naslov);
+  --boja-gumb-tekst: var(--boja-naslov);
+
+  /* Zaglavlje tablice: podloga i boja natpisa odvojene od opcih, da ga tema moze
+     naglasiti a da ne dira sve ostale tihe plohe. */
+  --pozadina-zaglavlja: var(--boja-povrsina-tiha);
+  --boja-zaglavlja-tekst: var(--boja-naslov);
+
+  /* Traka koja oznacava redak pod misem, uz lijevi rub. `none` znaci da je nema. */
+  --oznaka-retka: none;
+
+  /* Tanki rub oko pilula (značke, brojači, odabrane vrijednosti). U svijetlim temama
+     ga nema - ondje pilulu odvaja podloga; na tamnoj podlozi podloga nije dovoljna. */
+  --rub-pilule: transparent;
+
+  /* Redak pod mišem. Odvojen od `--boja-povrsina-tiha` (koja je i zaglavlje tablice)
+     jer u tamnoj temi hover ide u ljubičasto, a zaglavlje ostaje plavo. */
+  --boja-redak-hover: var(--boja-povrsina-tiha);
+
+  /* Gornja traka ima svoje tokene jer u nekim temama nije iste boje kao kartica -
+     u mornarskoj je tamnoplava, kao bočni izbornik s predloška. */
+  --boja-traka: #ffffff;
+  --boja-traka-tekst: #002f49;
+  --boja-traka-rub: #e1e1e1;
+  --boja-traka-tiha: #f5f5f5;      /* hover stavke u traci */
+  --boja-traka-akcent: #1a75bc;    /* aktivna stavka izbornika */
+
+  /* stanja */
+  --boja-greska: #ff9899;          /* ćelija koju je poslužitelj odbio - boji se CIJELA */
+  --boja-greska-tiha: #fdecea;
+  --boja-greska-tekst: #a4262c;
+  --boja-uspjeh: #2e7d32;
+  --boja-upozorenje: #7a5b00;
+  --boja-upozorenje-tiha: #fff8e1;
+  --boja-upozorenje-rub: #ffe69c;
+
+  /* oblik */
+  --radijus: 4px;
+  --radijus-pilula: 999px;
+  --razmak: 8px;
+  --visina-retka: 38px;
+  --sjena-dijalog: 0 4px 24px rgba(0, 0, 0, 0.18);
+  --pismo: 14px/1.45 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+}
+
+/* --- tamna --- po `pics/dizajn1.jpeg`
+   Podloge su tamnoplave, ne crne: čista crna uz bijeli tekst daje treperenje na
+   rubovima slova, a tablica ima na tisuće rubova.
+
+   Ovdje se svjesno ODUSTAJE od firmine plave. Ona je tema „Svijetla" i ona je
+   zadana; tamna postoji da se u njoj radi navečer, i nosi dvije jarke boje s
+   predloška - magentu za radnju i cijan za brojeve. Jedna boja na tamnoj podlozi
+   izgleda kao svijetla tema kojoj je netko ugasio svjetlo. */
+
+[data-tema='tamna'] {
+  color-scheme: dark;
+
+  --boja-pozadina: #081025;
+  --boja-povrsina: #0a173a;
+  --boja-povrsina-tiha: #101f4a;
+  --boja-rub: #22306a;
+  --boja-rub-polja: #2f3f7a;
+  --boja-znacka: #241a5c;         /* pilule su ljubičaste, ne sive */
+
+  --boja-tekst: #dfe6f2;
+  --boja-tekst-prigusen: #8d9ab5;
+  --boja-naslov: #ffffff;
+
+  --boja-akcent: #ce3eff;         /* magenta s predloška - poveznice, fokus, aktivna stavka */
+  --boja-akcent-tamna: #e07cff;   /* hover je na tamnoj podlozi SVJETLIJI, ne tamniji */
+  --boja-akcent-tiha: #2a0f4a;
+  --boja-akcent-tekst: #ffffff;
+  --boja-akcent-blijeda: #3a3260;
+  --boja-akcent-2: #2ad0ff;       /* cijan - brojači, značke, oznaka poretka */
+  --boja-odabir: #2ad0ff;         /* kvačice i radio gumbi svijetle cijanom */
+
+  /* Glavni gumb je gradijent sa sjajem, kao „Get template" na predlošku. Krajevi su
+     odabrani tako da bijeli tekst prolazi na OBA (5.7:1 i 4.7:1) - jarko ne znači
+     nečitljivo. */
+  --gradijent-akcent: linear-gradient(135deg, #7c3aed, #c026d3);
+  --gradijent-akcent-hover: linear-gradient(135deg, #8b4bf5, #d63ae0);
+  --sjaj-akcent: 0 0 0 1px rgba(206, 62, 255, 0.35), 0 6px 20px rgba(124, 58, 237, 0.45);
+  --sjena-kartica: 0 1px 0 rgba(255, 255, 255, 0.04);
+  --rub-pilule: rgba(42, 208, 255, 0.30);
+  --boja-redak-hover: #191552;
+
+  /* Naslov ekrana ide iz magente u cijan - dvije boje teme, na najvecem tekstu koji
+     ekran ima. Oba kraja prolaze na plohi (4.8:1 i 9.7:1). */
+  --gradijent-naslova: linear-gradient(135deg, #ce3eff, #2ad0ff);
+  /* Nit na vrhu svake kartice i tablice - ono sto na predlosku odvaja plohu od pozadine
+     kad su obje tamne. */
+  --traka-kartice: linear-gradient(90deg, #7c3aed, #c026d3, #2ad0ff);
+  --klizac: #8b4bf5 #0a1230;
+
+  /* Obrubljeni gumbi prelaze iz bijelog u magentu. Njih je na ekranu najvise - dodaj
+     zapis, odustani, stranice, gumbi u celiji - pa je ovo promjena koja se vidi
+     svugdje, za razliku od niti od 2px. */
+  --boja-gumb-rub: #ce3eff;
+  --boja-gumb-tekst: #e07cff;
+
+  --pozadina-zaglavlja: #16204a;
+  --boja-zaglavlja-tekst: #ffffff;
+  --oznaka-retka: inset 3px 0 0 #ce3eff;
+
+  --boja-traka: #0a1230;
+  --boja-traka-tekst: #dfe6f2;
+  --boja-traka-rub: #22306a;
+  --boja-traka-tiha: #16204a;
+  --boja-traka-akcent: #ce3eff;
+
+  --boja-greska: #8f2f33;         /* ćelija koju je poslužitelj odbio */
+  --boja-greska-tiha: #3a1416;
+  --boja-greska-tekst: #ff9899;
+  --boja-uspjeh: #7bc47f;
+  --boja-upozorenje: #e0b95c;
+  --boja-upozorenje-tiha: #3a2f10;
+  --boja-upozorenje-rub: #5c4a19;
+
+  --radijus: 8px;                 /* predložak je mekši od firmine tablice */
+  --sjena-dijalog: 0 4px 28px rgba(0, 0, 0, 0.55);
+}
+
+/* --- ljubičasta --- po `pics/dizajn2.jpeg`: lavanda umjesto sive, ljubičasti
+   gradijent na glavnom gumbu, koral kao drugi naglasak, mekši rubovi */
+
+[data-tema='ljubicasta'] {
+  color-scheme: light;
+
+  --boja-pozadina: #f2edf3;
+  --boja-povrsina: #ffffff;
+  --boja-povrsina-tiha: #f7f3f8;
+  --boja-rub: #dcd7db;
+  --boja-rub-polja: #c9c2cc;
+  --boja-znacka: #ece5f2;
+
+  --boja-tekst: #3b3448;
+  --boja-tekst-prigusen: #756a85;
+  --boja-naslov: #2a2333;
+
+  /* Ljubičasta s predloška (#a35cff) na bijelom daje 3.8:1 - premalo za tekst gumba i
+     poveznice. Zadržan je ton, spuštena svjetlina do 5.2:1. */
+  --boja-akcent: #8a3ff0;
+  --boja-akcent-tamna: #6f1fd0;
+  --boja-akcent-tiha: #f3e9ff;
+  --boja-akcent-blijeda: #cbb6e4;
+  --boja-akcent-2: #6f1fd0;       /* tamniji ton ISTE boje, ne druga boja */
+  /* kontrole odabira prate naglasak: zelena je dio firmine teme, ne pravilo */
+  --boja-odabir: #8a3ff0;
+
+  /* Cijela tema je jedna boja u vise jacina - ljubicasta, bez druge boje uz nju.
+     Zivost ne dolazi od druge boje nego od toga na KOLIKO mjesta ista stoji. */
+  --gradijent-akcent: linear-gradient(135deg, #8a3ff0, #6f1fd0);
+  --gradijent-akcent-hover: linear-gradient(135deg, #7c3aed, #5b16ad);
+  --boja-akcent-tekst: #ffffff;
+  --sjaj-akcent: 0 0 0 1px rgba(138, 63, 240, 0.35), 0 6px 20px rgba(138, 63, 240, 0.40);
+  --sjena-kartica: 0 2px 10px rgba(42, 35, 51, 0.06);
+  --rub-pilule: rgba(138, 63, 240, 0.35);
+  --traka-kartice: linear-gradient(90deg, #8a3ff0, #b06bff);
+  --gradijent-naslova: linear-gradient(135deg, #6f1fd0, #a35cff);
+  --klizac: #8a3ff0 #ece5f2;
+
+  --boja-gumb-rub: #8a3ff0;
+  --boja-gumb-tekst: #6f1fd0;
+
+  --pozadina-zaglavlja: #f0e6fb;
+  --boja-zaglavlja-tekst: #6f1fd0;
+  --oznaka-retka: inset 3px 0 0 #8a3ff0;
+
+  --boja-traka: #ffffff;
+  --boja-traka-tekst: #2a2333;
+  --boja-traka-rub: #dcd7db;
+  --boja-traka-tiha: #f7f3f8;
+  --boja-traka-akcent: #8a3ff0;
+
+  --boja-greska: #ff9899;
+  --boja-greska-tiha: #fdecea;
+  --boja-greska-tekst: #a4262c;
+  --boja-uspjeh: #2e7d32;
+  --boja-upozorenje: #7a5b00;
+  --boja-upozorenje-tiha: #fff8e1;
+  --boja-upozorenje-rub: #ffe69c;
+
+  --radijus: 10px;
+  --sjena-dijalog: 0 4px 24px rgba(42, 35, 51, 0.22);
+}
+
+/* --- mornarska --- po `pics/dizajn3.jpeg`
+   Ravna i hladna, bez gradijenta - taj je predložak čist. Ono što ga čini
+   prepoznatljivim je TAMNOPLAVA traka uz svijetli sadržaj; kod njega je to bočni
+   izbornik, ovdje gornja traka. */
+
+[data-tema='mornarska'] {
+  color-scheme: light;
+
+  --boja-pozadina: #ebeff8;
+  --boja-povrsina: #ffffff;
+  --boja-povrsina-tiha: #f4f6fb;
+  --boja-rub: #dde3ef;
+  --boja-rub-polja: #c3ccdd;
+  --boja-znacka: #e4e9f5;
+
+  --boja-tekst: #2c3a52;
+  --boja-tekst-prigusen: #66748e;
+  --boja-naslov: #182b4c;
+
+  --boja-akcent: #3862e8;
+  --boja-akcent-tamna: #2a4fc9;
+  --boja-akcent-tiha: #e7edfd;
+  --boja-akcent-tekst: #ffffff;
+  --boja-akcent-blijeda: #aab6d4;
+  --boja-akcent-2: #0b7a59;       /* tirkiz s predloška, potamnjen do čitljivog */
+  --boja-odabir: #3862e8;
+
+  --gradijent-akcent: linear-gradient(135deg, #3862e8, #3862e8);
+  --gradijent-akcent-hover: linear-gradient(135deg, #2a4fc9, #2a4fc9);
+  --sjaj-akcent: none;
+  --sjena-kartica: 0 1px 3px rgba(24, 43, 76, 0.08);
+
+  --boja-traka: #182b4c;
+  --boja-traka-tekst: #ffffff;
+  --boja-traka-rub: #223a63;
+  --boja-traka-tiha: #223a63;
+  --boja-traka-akcent: #7aa2ff;   /* na tamnoj traci naglasak mora biti svjetliji */
+
+  --boja-greska: #ff9899;
+  --boja-greska-tiha: #fdecea;
+  --boja-greska-tekst: #a4262c;
+  --boja-uspjeh: #2e7d32;
+  --boja-upozorenje: #7a5b00;
+  --boja-upozorenje-tiha: #fff8e1;
+  --boja-upozorenje-rub: #ffe69c;
+
+  --radijus: 8px;
+  --sjena-dijalog: 0 4px 24px rgba(24, 43, 76, 0.18);
+}
+
+/* ===================== OSNOVA ===================== */
+
+body {
+  margin: 0;
+  font: var(--pismo);
+  color: var(--boja-tekst);
+  background: var(--boja-pozadina);
+}
+
+/* Klizac crta preglednik, pa mu se boja ne da zadati obicnim pravilom - samo ovim.
+   Bitno je u tamnoj temi: zadani svijetli klizac uz tamnu tablicu strsi vise nego
+   ijedan nas element. */
+* {
+  scrollbar-color: var(--klizac);
+  scrollbar-width: thin;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--boja-naslov);
+  font-weight: 600;
+}
+
+/* Naslov ekrana uzima ispunu iz teme. `background-clip: text` znaci da se pozadina
+   vidi samo kroz slova; u temama bez prijelaza gradijent je iz iste boje u istu, pa
+   naslov izgleda kao obican tekst i nijedno pravilo se ne grana po temi. */
+h2 {
+  margin: 0 0 1rem;
+  font-size: 20px;
+  background-image: var(--gradijent-naslova);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Sto stoji U naslovu (znacka dosega, primjerice) nosi svoju boju - inace bi ga
+   `color: transparent` iz naslova ostavio nevidljivim. */
+h2 > * {
+  color: var(--boja-naslov);
+}
+
+h3 {
+  font-size: 16px;
+}
+
+/* Uvodni tekst ekrana. Objašnjava čemu ekran služi, pa stoji tiše od podataka
+   zbog kojih je korisnik došao. */
+.screen-intro {
+  margin: 0 0 1.25rem;
+  color: var(--boja-tekst-prigusen);
+}
+
+/* --- traka iznad tablice ---
+   Novi zapis se svugdje unosi kroz dijalog, pa iznad tablice stoji samo gumb koji
+   ga otvara (i, gdje ima smisla, pretraga). */
+
+.toolbar {
+  display: flex;
+  gap: var(--razmak);
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* ===================== GUMBI =====================
+   Dva oblika, ne pet. Obrubljeni je ZADANI - njime se radi sve osim jedne stvari.
+   Ispunjeni plavi je glavna radnja ekrana i na ekranu stoji jednom. */
+
+.add-toggle-button,
+.form-actions button,
+.picker-actions button,
+.editor-actions button,
+.small-button,
+.filter-add-button,
+.cell-button,
+.pager-button,
+.new-value button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--boja-gumb-tekst);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-gumb-rub);
+  border-radius: var(--radijus);
+  cursor: pointer;
+}
+
+.add-toggle-button:hover,
+.form-actions button:hover,
+.picker-actions button:hover,
+.editor-actions button:hover,
+.small-button:hover,
+.filter-add-button:hover,
+.cell-button:hover,
+.new-value button:hover {
+  background: var(--boja-povrsina-tiha);
+}
+
+/* Glavna radnja. Ispunjena je jedina boja koja na ekranu nešto tvrdi, pa se ne dijeli -
+   ako je nose dva gumba, nijedan više ne znači "ovo je to". Ispuna dolazi iz teme: u
+   firminoj je ravna plava, u tamnoj gradijent sa sjajem. */
+.form-actions .primary,
+.picker-actions .primary,
+.editor-actions .primary {
+  color: var(--boja-akcent-tekst);
+  background: var(--gradijent-akcent);
+  border-color: transparent;
+  box-shadow: var(--sjaj-akcent);
+}
+
+.form-actions .primary:hover,
+.picker-actions .primary:hover,
+.editor-actions .primary:hover {
+  background: var(--gradijent-akcent-hover);
+  border-color: transparent;
+}
+
+/* Nepovratna radnja. Crvena je namjerno rezervirana za "ovo se ne može poništiti",
+   a ne za svako brisanje - inače prestane išta značiti. */
+.form-actions .danger {
+  color: var(--boja-akcent-tekst);
+  background: var(--boja-greska-tekst);
+  border-color: var(--boja-greska-tekst);
+}
+
+button:disabled {
+  color: var(--boja-tekst-prigusen);
+  border-color: var(--boja-rub);
+  background: var(--boja-povrsina-tiha);
+  cursor: default;
+}
+
+/* Onemogućen glavni gumb gubi i gradijent i sjaj - inače i dalje viče "pritisni me". */
+.form-actions .primary:disabled,
+.picker-actions .primary:disabled,
+.editor-actions .primary:disabled {
+  color: var(--boja-akcent-tekst);
+  background: var(--boja-akcent-blijeda);
+  border-color: var(--boja-akcent-blijeda);
+  box-shadow: none;
+}
+
+/* Fokus nosi isti sjaj kao glavna radnja: na tamnoj podlozi obrub od 2px sam po sebi
+   ne kaze dovoljno glasno gdje je tipkovnica. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--boja-akcent);
+  outline-offset: 1px;
+  box-shadow: var(--sjaj-akcent);
+}
+
+/* ===================== KARTICA I FORMA =====================
+   Svaki odjeljak ekrana stoji na bijeloj plohi s tankim rubom - to je jedini
+   "kontejner" u cijeloj aplikaciji, i tablica i forma koriste isti. */
+
+.survey-form-card {
+  margin-bottom: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  /* boja i nit su odvojene: `background` kao skracenica bi nit obrisala */
+  background-color: var(--boja-povrsina);
+  background-image: var(--traka-kartice);
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  border: 1px solid var(--boja-rub);
+  border-radius: var(--radijus);
+  box-shadow: var(--sjena-kartica);
+}
+
+.survey-form-card h3 {
+  margin: 0 0 1rem;
+}
+
+.column-scope-warning {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--boja-upozorenje);
+  background: var(--boja-upozorenje-tiha);
+  border: 1px solid var(--boja-upozorenje-rub);
+  border-radius: var(--radijus);
+}
+
+/* --- polja forme --- */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field-label {
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
+/* Jedan izgled unosa za cijelu aplikaciju. Popis je namjerno dugačak umjesto da se
+   stilira goli `input` - inače bi ga pokupile i kvačice i radio gumbi, koje crta
+   preglednik i kojima obrub ne treba. */
+.form-field select,
+.form-field input[type='text'],
+.form-field input[type='number'],
+.form-field input[type='date'],
+.form-field app-field-input input[type='text'],
+.form-field app-field-input input[type='number'],
+.form-field app-field-input input[type='date'],
+.form-field app-field-input input[type='datetime-local'],
+.form-field app-field-input select,
+.picker-search,
+.picker-button {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--boja-tekst);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+.form-field select:focus,
+.form-field input:focus,
+.form-field app-field-input input:focus,
+.form-field app-field-input select:focus,
+.picker-search:focus,
+td input:focus,
+td select:focus {
+  border-color: var(--boja-akcent);
+  outline: none;
+}
+
+.form-field-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--razmak);
+}
+
+.form-field-checkbox input[type='checkbox'],
+.form-field-checkbox app-field-input input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+}
+
+/* Kontrole odabira nose zelenu - to je jedina boja koja na snimkama znači
+   "ovo je odabrano", i ne miješa se s plavom koja znači radnju. */
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--boja-odabir);
+}
+
+.form-field-static {
+  padding: 5px 0;
+}
+
+/* pojašnjenje ispod polja - tiše od labela, jer objašnjava, a ne imenuje */
+.form-field-hint,
+.field-hint {
+  font-size: 12px;
+  color: var(--boja-tekst-prigusen);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--razmak);
+  margin-top: 1.25rem;
+}
+
+/* ===================== DIJALOG ===================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+.modal-dialog {
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin-bottom: 0;
+  box-shadow: var(--sjena-dijalog);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* naslov u zaglavlju dijaloga već ima razmak od zaglavlja, ne treba svoj */
+.modal-header h3 {
+  margin-bottom: 0;
+  font-size: 18px;
+}
+
+/* Radnje dijaloga stoje GORE DESNO, iznad sadržaja - kao na postojećoj aplikaciji.
+   Razlog nije ukras: obrazac zna imati tridesetak polja, a popis šifrarnika se pomiče
+   unutar dijaloga, pa gumb ispod njih odluta iz vida baš kad zatreba. */
+.modal-dialog .form-actions,
+.modal-dialog .picker-actions {
+  justify-content: flex-end;
+  margin: 1rem 0 1.25rem;
+}
+
+/* Greška o onome što se upravo upisuje stoji U dijalogu. Na stranici iza zatamnjene
+   pozadine korisnik je ne bi ni vidio - gleda u dijalog, a pozadina je zamračena. */
+.dialog-error {
+  margin: 1rem 0 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--boja-greska-tiha);
+  border: 1px solid var(--boja-greska);
+  border-radius: var(--radijus);
+}
+
+/* ===================== POLJE ZA UNOS (app-field-input) =====================
+   Komponenta crta samo kontrolu; kako izgleda ovisi o mjestu na kojem stoji,
+   pa stilovi žive ovdje uz ostale zajedničke, a ne u samoj komponenti. */
+
+app-field-input {
+  display: block;
+}
+
+/* Potvrdni okviri / radio gumbi kao način odabira iz šifrarnika. U formi stoje jedan
+   ispod drugoga (ima mjesta), u retku tablice jedan do drugoga - ondje bi popis u
+   stupcu razvukao cijeli redak. */
+.choice-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+td .choice-group {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.choice input {
+  width: 15px;
+  height: 15px;
+}
+
+/* Vrijednost koju je korisnik upisao, a šifrarnik je još nema - server je dodaje pri
+   spremanju zapisa. Razlika se mora vidjeti: odabrano iz popisa i ono što se tek stvara
+   nije isto, a nakon spremanja se više neće razlikovati. */
+.choice-new {
+  font-style: italic;
+  color: var(--boja-upozorenje);
+}
+
+.choice-new::after {
+  content: ' (nova)';
+  font-size: 12px;
+}
+
+/* Polje za upis nove vrijednosti - stoji uz popis, ne umjesto njega. */
+.new-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.new-value input {
+  box-sizing: border-box;
+  min-width: 9rem;
+  padding: 4px 8px;
+  font: inherit;
+  border: 1px dashed var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+.new-value button {
+  padding: 4px 10px;
+}
+
+/* u dijalogu polje ide u vlastiti red, ispod popisa */
+.new-value-row {
+  display: flex;
+  margin-top: var(--razmak);
+}
+
+.new-value-row input {
+  flex: 1;
+}
+
+/* Odabrana vrijednost izvan izbornika - značka, da se više njih vidi kao popis, a ne
+   kao jedan dugačak niz razdvojen zarezima. */
+.chip {
+  display: inline-block;
+  padding: 1px 8px;
+  margin: 1px 3px 1px 0;
+  font-size: 13px;
+  color: var(--boja-naslov);
+  background: var(--boja-znacka);
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus-pilula);
+}
+
+/* Gumb koji otvara dijalog za odabir izgleda kao polje, jer to i jest - unutra stoje
+   odabrane vrijednosti, a ne natpis radnje. */
+.picker-button {
+  min-height: 34px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.picker-search {
+  margin-top: 1rem;
+}
+
+/* Dugačak šifrarnik i jest razlog zbog kojeg dijalog postoji - popis se zato pomiče
+   unutar njega, umjesto da dijalog naraste preko cijelog ekrana. */
+.picker-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 45vh;
+  overflow-y: auto;
+  margin-top: 1rem;
+  border: 1px solid var(--boja-rub);
+  border-radius: var(--radijus);
+}
+
+/* Popis u dijalogu je tablica bez tablice: svaki redak ima svoju liniju i hover,
+   isto kao redak u tablici, jer se i bira na isti način. */
+.picker-list .choice {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--boja-rub);
+}
+
+.picker-list .choice:last-child {
+  border-bottom: none;
+}
+
+.picker-list .choice:hover {
+  background: var(--boja-povrsina-tiha);
+}
+
+.picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--razmak);
+  margin-top: 1rem;
+}
+
+/* Vrijednost koju računa server - prikazuje se, ali se ne unosi. */
+.computed-value {
+  display: inline-block;
+  padding: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-button {
+  padding: 3px 10px;
+  font-weight: normal;
+}
+
+/* ===================== TABLICA =====================
+   Gusta i plosnata: 1px linije u oba smjera, sivo zaglavlje, redak visine
+   --visina-retka. Podaci nose pažnju, mreža ih samo drži na mjestu. */
+
+.table-scroll {
+  overflow-x: auto;
+  background-color: var(--boja-povrsina);
+  background-image: var(--traka-kartice);
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  border: 1px solid var(--boja-rub);
+  border-radius: var(--radijus);
+  box-shadow: var(--sjena-kartica);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: middle;
+  height: var(--visina-retka);
+  padding: 4px 10px;
+  border-right: 1px solid var(--boja-rub);
+  border-bottom: 1px solid var(--boja-rub);
+  white-space: nowrap;
+}
+
+/* zadnji stupac ne crta liniju prema van - nju već nosi rub kartice */
+th:last-child,
+td:last-child {
+  border-right: none;
+}
+
+tbody tr:last-child > td {
+  border-bottom: none;
+}
+
+th {
+  background: var(--pozadina-zaglavlja);
+  color: var(--boja-zaglavlja-tekst);
+  font-weight: 600;
+}
+
+tbody tr:hover > td {
+  background: var(--boja-redak-hover);
+}
+
+/* Uz podlogu i traka na lijevom rubu retka - podloga se u gustoj tablici lako
+   izgubi, a traka kaze gdje redak POCINJE. */
+tbody tr:hover > td:first-child {
+  box-shadow: var(--oznaka-retka);
+}
+
+.actions-col {
+  width: 1%;
+}
+
+/* --- redak koji se upisuje izravno u tablici ---
+   Kontrole u njemu crta app-field-input, a stilovi komponente (data-view) ne dopiru
+   u tuđi predložak - zato i ovo stoji ovdje, a ne uz ostatak ekrana "Podaci".
+
+   Hover je naveden posebno: redak koji se upisuje mora zadržati svoju podlogu i kad
+   je miš na njemu, a inače bi ga pregazilo sivilo iz `tbody tr:hover`. */
+
+.inline-add-row > td,
+.inline-add-row:hover > td {
+  background: var(--boja-akcent-tiha);
+}
+
+.inline-add-row app-field-input input[type='text'],
+.inline-add-row app-field-input input[type='number'],
+.inline-add-row app-field-input input[type='date'],
+.inline-add-row app-field-input select,
+td input[type='text'],
+td input[type='number'],
+td input[type='date'],
+td select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 7rem;
+  padding: 3px 6px;
+  font: inherit;
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+/* --- ikone u retku ---
+   Stoje u prvom stupcu, kao goli znak bez okvira: u retku visine 38px okrugli
+   gumbi zauzmu više prostora nego podatak pored kojeg stoje. */
+
+.row-icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--boja-naslov);
+  background: transparent;
+  border: none;
+  border-radius: var(--radijus);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  color: var(--boja-akcent);
+  background: var(--boja-znacka);
+}
+
+.icon-edit {
+  color: var(--boja-naslov);
+}
+
+.icon-add {
+  color: var(--boja-uspjeh);
+  font-size: 16px;
+}
+
+.icon-delete {
+  color: var(--boja-greska-tekst);
+}
+
+.column-delete-button {
+  margin-left: 4px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--boja-greska-tekst);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.column-delete-button:hover {
+  background: var(--boja-greska-tiha);
+  border-radius: var(--radijus);
+}
+
+/* ===================== PORUKE ===================== */
+
+.error {
+  color: var(--boja-greska-tekst);
+}
+
+.success {
+  color: var(--boja-uspjeh);
+}
+
+/* Oznaka aktivnog retka (aktivna firma / aktivan obrazac) - globalno da je dijele svi
+   ekrani. Nosi DRUGI naglasak teme, ne prvi: prvi je rezerviran za ono što se klikne, a
+   ovo je stanje. U firminoj temi su to ionako ista boja. */
+.active-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--boja-akcent-2);
+  background: var(--boja-akcent-tiha);
+  border: 1px solid var(--rub-pilule);
+  border-radius: var(--radijus-pilula);
+}

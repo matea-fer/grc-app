@@ -1,0 +1,114 @@
+<h2>Zadaci po riziku / samoprocjeni</h2>
+<p class="screen-intro">
+  Odaberite rizik ili samoprocjenu da vidite zadatke (mjere) vezane uz njih — s rokom,
+  nositeljem, prioritetom i statusom. Zadaci u kašnjenju su istaknuti.
+</p>
+
+@if (activeCompanyId() === null) {
+  <p class="screen-intro">Odaberite firmu u gornjoj traci da vidite zadatke.</p>
+} @else if (missing()) {
+  <div class="column-scope-warning">
+    Ova firma nema sve potrebne obrasce („Zadaci" te „Rizici" / „Samoprocjena"). Uvezite
+    domenu (skill domain-seed) ili ih dodajte u Editoru.
+  </div>
+} @else {
+  <div class="toolbar">
+    <div class="mode-switch" role="group" aria-label="Poveži po">
+      <button
+        type="button"
+        class="small-button"
+        [class.active]="mode() === 'rizik'"
+        (click)="onModeChange('rizik')"
+      >
+        Po riziku
+      </button>
+      <button
+        type="button"
+        class="small-button"
+        [class.active]="mode() === 'samoprocjena'"
+        (click)="onModeChange('samoprocjena')"
+      >
+        Po samoprocjeni
+      </button>
+    </div>
+
+    <label class="parent-picker">
+      <span>Odaberi {{ parentLabel() }}:</span>
+      <select
+        [ngModel]="selectedParentId()"
+        (ngModelChange)="onParentChange($event)"
+        [disabled]="loadingParents()"
+      >
+        <option [ngValue]="null">— odaberi —</option>
+        @for (p of parents(); track p.id) {
+          <option [ngValue]="p.id">{{ p.naziv }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (error(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+
+  @if (loadingParents()) {
+    <p class="screen-intro">Učitavanje popisa…</p>
+  } @else if (parents().length === 0) {
+    <p class="screen-intro">Nema nijednog zapisa za odabir u ovoj firmi.</p>
+  } @else if (selectedParentId() === null) {
+    <p class="screen-intro">Odaberite {{ parentLabel() }} iz izbornika iznad.</p>
+  } @else {
+    <div class="kpi-row">
+      <div class="kpi-tile">
+        <span class="kpi-value">{{ ukupno() }}</span>
+        <span class="kpi-label">Ukupno zadataka</span>
+      </div>
+      <div class="kpi-tile">
+        <span class="kpi-value">{{ otvoreni() }}</span>
+        <span class="kpi-label">Otvoreni</span>
+      </div>
+      <div class="kpi-tile" [class.kpi-alarm]="uKasnjenju() > 0">
+        <span class="kpi-value">{{ uKasnjenju() }}</span>
+        <span class="kpi-label">U kašnjenju</span>
+      </div>
+    </div>
+
+    @if (loadingTasks()) {
+      <p class="screen-intro">Učitavanje zadataka…</p>
+    } @else if (ukupno() === 0) {
+      <p class="screen-intro">
+        Za „{{ selectedParentName() }}" nema nijednog zadatka.
+      </p>
+    } @else {
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Zadatak</th>
+              <th>Nositelj</th>
+              <th>Rok</th>
+              <th>Prioritet</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of redovi(); track $index) {
+              <tr [class.red-overdue]="r.overdue">
+                <td>{{ r.naziv }}</td>
+                <td>{{ r.nositelj }}</td>
+                <td>
+                  {{ r.rok }}
+                  @if (r.overdue) {
+                    <span class="overdue-badge">kasni</span>
+                  }
+                </td>
+                <td>{{ r.prioritet }}</td>
+                <td>{{ r.status }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+}

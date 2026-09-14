@@ -1,0 +1,31 @@
+/* .screen-intro, .active-badge i unos u retku (`td input`) su u globalnom styles.css -
+   dijele ih svi ekrani, pa ih ovdje više nema. */
+
+.archive-heading {
+  margin: 2rem 0 0.75rem;
+}
+
+/* Akcije u retku arhive su tekst, a ne ikone: "Vrati" i "Isprazni trajno" se razlikuju
+   po posljedici, a ne po obliku, pa se ta razlika mora moći pročitati. Osnovni oblik
+   gumba dolazi iz globalnog stila, ovdje se samo smanjuje na visinu retka. */
+.small-button {
+  padding: 2px 8px;
+  font-size: 13px;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.small-button.secondary {
+  color: var(--boja-naslov);
+  border-color: var(--boja-rub-polja);
+}
+
+.small-button.danger {
+  color: var(--boja-greska-tekst);
+  border-color: var(--boja-greska-tekst);
+  background: var(--boja-povrsina);
+}
+
+.small-button.danger:hover {
+  background: var(--boja-greska-tiha);
+}

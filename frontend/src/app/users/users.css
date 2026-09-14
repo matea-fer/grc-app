@@ -1,0 +1,18 @@
+/* Lozinka nije u globalnom popisu unosa (ondje se nabrajaju tipovi koje obrazac zna
+   ponuditi), a u formi mora izgledati isto kao ostala polja. */
+.form-field input[type='password'] {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--boja-tekst);
+  background: var(--boja-povrsina);
+  border: 1px solid var(--boja-rub-polja);
+  border-radius: var(--radijus);
+}
+
+.form-field input[type='password']:focus {
+  border-color: var(--boja-akcent);
+  outline: none;
+}
