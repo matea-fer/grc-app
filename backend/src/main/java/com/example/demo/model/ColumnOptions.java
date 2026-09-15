@@ -97,6 +97,16 @@ public record ColumnOptions(
      */
     public static final String ACTION_RELATED = "related";
 
+    /**
+     * Gumb otvara ekran za SBOM evaluaciju bas tog zapisa (npr. produkta-softwarea).
+     *
+     * Za razliku od history/lock/related, radnja ne otvara dijalog nad zapisom nego vodi na
+     * zaseban ekran (custom znacajka SBOM), noseci id i naziv zapisa kao kontekst - pa se
+     * evaluacije vezu bas uz taj produkt. Sam zapis se time ne mijenja, pa radnja radi i nad
+     * zakljucanim zapisom.
+     */
+    public static final String ACTION_SBOM = "sbom";
+
     /** Brisanje ciljanog zapisa se odbija dok veze na njega postoje. Zadano ponasanje. */
     public static final String ON_DELETE_RESTRICT = "restrict";
 

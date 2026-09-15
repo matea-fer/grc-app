@@ -72,6 +72,12 @@ export class TemplateService {
     return this.http.put<Template>(`${this.apiUrl}/${id}`, { name });
   }
 
+  /** Uključi/isključi „upitnik" način obrasca (samo administrator; backend to i provodi). */
+  setQuestionnaire(id: number, value: boolean): Observable<Template> {
+    const params = new HttpParams().set('value', String(value));
+    return this.http.put<Template>(`${this.apiUrl}/${id}/questionnaire`, null, { params });
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { interval } from 'rxjs';
 
 import { TenantService } from '../tenant/tenant.service';
@@ -18,8 +19,14 @@ const POLL_MS = 2500;
 export class SbomEval {
   private readonly tenantService = inject(TenantService);
   private readonly sbomService = inject(SbomService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly activeCompanyId = this.tenantService.activeCompanyId;
+
+  /** Ako je ekran otvoren iz zapisa produkta, ovdje su id i naziv tog produkta. */
+  protected readonly productId = signal<number | null>(null);
+  protected readonly productName = signal<string | null>(null);
 
   protected readonly evaluations = signal<SbomEvaluation[]>([]);
   protected readonly loadingList = signal(false);
@@ -39,8 +46,19 @@ export class SbomEval {
   );
 
   constructor() {
+    // Query parametri nose kontekst produkta (kad se dođe iz zapisa produkta). Prati se
+    // reaktivno jer isti ekran može dobiti drugi produkt bez ponovnog stvaranja komponente.
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const raw = params.get('product');
+      const id = raw !== null && /^\d+$/.test(raw) ? Number(raw) : null;
+      this.productId.set(id);
+      this.productName.set(id === null ? null : params.get('productName'));
+    });
+
+    // Popis ovisi o firmi I o odabranom produktu - promjena bilo čega ga ponovno učita.
     effect(() => {
       const companyId = this.activeCompanyId();
+      this.productId();
       untracked(() => {
         this.detail.set(null);
         if (companyId === null) {
@@ -83,7 +101,9 @@ export class SbomEval {
     }
     this.uploading.set(true);
     this.uploadError.set(null);
-    this.sbomService.upload(this.selectedFile).subscribe({
+    const pid = this.productId();
+    const product = pid !== null ? { id: pid, name: this.productName() } : undefined;
+    this.sbomService.upload(this.selectedFile, product).subscribe({
       next: () => {
         this.uploading.set(false);
         this.selectedFile = null;
@@ -104,7 +124,7 @@ export class SbomEval {
     if (!silent) {
       this.loadingList.set(true);
     }
-    this.sbomService.list().subscribe({
+    this.sbomService.list(this.productId()).subscribe({
       next: (list) => {
         this.evaluations.set(list);
         this.loadingList.set(false);
@@ -138,6 +158,11 @@ export class SbomEval {
 
   protected closeDetail(): void {
     this.detail.set(null);
+  }
+
+  /** Makni filtar produkta - prikaži sve evaluacije firme. */
+  protected showAll(): void {
+    this.router.navigate(['/sbom'], { queryParams: {} });
   }
 
   protected remove(evaluation: SbomEvaluation, event: Event): void {

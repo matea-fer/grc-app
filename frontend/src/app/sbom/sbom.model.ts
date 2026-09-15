@@ -4,6 +4,9 @@ export type SbomStatus = 'PENDING' | 'RUNNING' | 'DONE' | 'FAILED';
 /** Sažetak evaluacije (popis + polling statusa), bez samog popisa ranjivosti. */
 export interface SbomEvaluation {
   id: number;
+  /** Zapis-produkt uz koji je SBOM vezan; null za samostalnu evaluaciju. */
+  productId: number | null;
+  productName: string | null;
   fileName: string;
   status: SbomStatus;
   uploadedAt: string;

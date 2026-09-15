@@ -28,8 +28,11 @@
            uvjeta SUŽAVA rezultat (spojeni su s I) - "grad = Zagreb i status = otvoren". -->
       <button type="button" class="filter-add-button" (click)="addFilter()">+ Filtar</button>
 
-      @if (columns().length > 0) {
+      @if (columns().length > 0 && !isQuestionnaire()) {
         <button type="button" class="add-toggle-button" (click)="openAddDialog()">+ Dodaj zapis</button>
+      }
+      @if (isQuestionnaire()) {
+        <span class="questionnaire-note">Upitnik: birate odgovor za svako pitanje. Retke (pitanja) dodaje administrator u Editoru.</span>
       }
     </div>
 
@@ -163,7 +166,9 @@
                     (changed)="onAttachmentsChanged()"
                   />
                 </div>
-              } @else if (field.readOnly) {
+              } @else if (field.readOnly || (isQuestionnaire() && field.type !== 'codebook')) {
+                <!-- Na upitniku je pitanje (i ostala ne-šifrarnička polja) zaključano: prikazuje
+                     se kao kontekst, a korisnik mijenja samo odgovor (šifrarnik). -->
                 <div class="form-field">
                   <span class="form-field-label">{{ field.label }}</span>
                   <span class="form-field-static">{{ readOnlyPreview(field, editValues()) }}</span>
@@ -240,21 +245,23 @@
                   <div class="row-icon-actions">
                     <!-- zaključan zapis se ne uređuje ni ne briše; dodavanje NOVOG retka ispod
                          njega je druga stvar i ostaje dopušteno -->
-                    <button
-                      type="button"
-                      class="icon-button icon-edit"
-                      [title]="survey.locked ? lockedTitle(survey) : 'Uredi'"
-                      [disabled]="survey.locked"
-                      (click)="startEdit(survey)"
-                    >✎</button>
-                    <button
-                      type="button"
-                      class="icon-button icon-delete"
-                      [title]="survey.locked ? lockedTitle(survey) : 'Obriši'"
-                      [disabled]="survey.locked"
-                      (click)="deleteSurvey(survey)"
-                    >✕</button>
-                    <button type="button" class="icon-button icon-add" title="Dodaj redak ispod" (click)="startInlineAdd(survey)">+</button>
+                    @if (!isQuestionnaire()) {
+                      <button
+                        type="button"
+                        class="icon-button icon-edit"
+                        [title]="survey.locked ? lockedTitle(survey) : 'Uredi'"
+                        [disabled]="survey.locked"
+                        (click)="startEdit(survey)"
+                      >✎</button>
+                      <button
+                        type="button"
+                        class="icon-button icon-delete"
+                        [title]="survey.locked ? lockedTitle(survey) : 'Obriši'"
+                        [disabled]="survey.locked"
+                        (click)="deleteSurvey(survey)"
+                      >✕</button>
+                      <button type="button" class="icon-button icon-add" title="Dodaj redak ispod" (click)="startInlineAdd(survey)">+</button>
+                    }
                     @if (survey.locked) {
                       <span class="lock-mark" [title]="lockedTitle(survey)">🔒</span>
                     }
@@ -262,7 +269,14 @@
                 </td>
                 @for (field of fields(); track field.key) {
                   <td>
-                    @if (field.type === 'file') {
+                    @if (isQuestionnaire() && field.type === 'codebook' && !survey.locked) {
+                      <!-- Upitnik: odgovor se bira INLINE u ćeliji i sprema odmah - bez olovčice. -->
+                      <app-field-input
+                        [field]="field"
+                        [value]="answerValue(survey, field)"
+                        (valueChange)="onInlineAnswer(survey, field, $event)"
+                      />
+                    } @else if (field.type === 'file') {
                       <app-attachment-cell
                         [templateId]="activeTemplateId()!"
                         [surveyId]="survey.id"

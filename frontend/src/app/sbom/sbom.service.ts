@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -16,14 +16,24 @@ export class SbomService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/sbom';
 
-  upload(file: File): Observable<SbomEvaluation> {
+  upload(file: File, product?: { id: number; name: string | null }): Observable<SbomEvaluation> {
     const form = new FormData();
     form.append('file', file);
+    if (product) {
+      form.append('productId', String(product.id));
+      if (product.name) {
+        form.append('productName', product.name);
+      }
+    }
     return this.http.post<SbomEvaluation>(this.apiUrl, form);
   }
 
-  list(): Observable<SbomEvaluation[]> {
-    return this.http.get<SbomEvaluation[]>(this.apiUrl);
+  list(productId?: number | null): Observable<SbomEvaluation[]> {
+    let params = new HttpParams();
+    if (productId != null) {
+      params = params.set('productId', String(productId));
+    }
+    return this.http.get<SbomEvaluation[]>(this.apiUrl, { params });
   }
 
   detail(id: number): Observable<SbomEvaluationDetail> {

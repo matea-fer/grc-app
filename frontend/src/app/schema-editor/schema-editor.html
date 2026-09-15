@@ -122,6 +122,19 @@
     } @else {
       <h3 class="section-heading">Stupci obrasca „{{ activeTemplateName() }}”</h3>
 
+      <!-- Upitnik: na ekranu Podaci korisnik ne dodaje ni ne briše retke, samo bira odgovor
+           (šifrarnik). Retke (pitanja) definira administrator. -->
+      <label class="form-field form-field-checkbox questionnaire-toggle">
+        <input
+          type="checkbox"
+          [ngModel]="isQuestionnaire()"
+          (ngModelChange)="toggleQuestionnaire($event)"
+        />
+        <span class="form-field-label">
+          Upitnik — korisnik samo bira odgovor (retke/pitanja se ne dodaju na „Podaci")
+        </span>
+      </label>
+
       <div class="toolbar">
         <button type="button" class="add-toggle-button" (click)="openColumnDialog()">+ Dodaj stupac</button>
       </div>

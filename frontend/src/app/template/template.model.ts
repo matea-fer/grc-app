@@ -3,6 +3,11 @@
 export interface Template {
   id: number;
   name: string;
+  /**
+   * Upitnik: retke (pitanja) definira administrator u Editoru i vide se na svakoj
+   * instanci, a korisnik na Podacima samo bira odgovor (šifrarnik), ne dodaje retke.
+   */
+  questionnaire: boolean;
 }
 
 // Firma za koju se template stvara NE ide u tijelu - backend je uzima iz

@@ -75,6 +75,12 @@ public class TemplateController {
         return service.rename(id, request);
     }
 
+    // PUT /api/templates/1/questionnaire?value=true - oznaci/odznaci obrazac kao upitnik
+    @PutMapping("/{id}/questionnaire")
+    public TemplateResponse setQuestionnaire(@PathVariable Long id, @RequestParam boolean value) {
+        return service.setQuestionnaire(id, value);
+    }
+
     // DELETE /api/templates/1 - obriši template i sve njegove zapise
     /**
      * POST /api/templates/bulk-delete/preview - sto bi skupno brisanje odnijelo.

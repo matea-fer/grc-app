@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -86,6 +87,7 @@ export class DataView {
   private readonly tenantService = inject(TenantService);
   private readonly authService = inject(AuthService);
   private readonly labelService = inject(ReferenceLabelService);
+  private readonly router = inject(Router);
 
   protected readonly activeCompanyId = this.tenantService.activeCompanyId;
   protected readonly templates = this.templateService.templates;
@@ -220,13 +222,38 @@ export class DataView {
   protected readonly columns = computed(() => this.fields().map((f) => f.key));
 
   /**
+   * Je li aktivni obrazac UPITNIK: retke (pitanja) definira administrator u Editoru, a
+   * korisnik ovdje samo bira odgovor - ne dodaje ni ne briše retke. Backend to i provodi.
+   */
+  protected readonly isQuestionnaire = computed(() => {
+    const id = this.activeTemplateId();
+    return this.templateService.templates().find((t) => t.id === id)?.questionnaire ?? false;
+  });
+
+  /**
    * Polja koja korisnik stvarno unosi.
    *
    * Otpadaju readOnly stupci (njih postavlja backend) te gumb i datoteka, koji uopće nemaju
    * vrijednost - poslati im bilo što značilo bi tvrditi da je spremaju. Prilozi žive u
    * vlastitoj tablici i mijenjaju se vlastitim pozivima.
+   *
+   * Na UPITNIKU se dodatno suzava na šifrarničke (odgovor) stupce: korisnik bira odgovor, a
+   * definicija pitanja (tekst/broj/datum) ostaje zaključana - vidljiva u retku, ali ne uređiva.
    */
-  protected readonly editableFields = computed(() =>
+  protected readonly editableFields = computed(() => {
+    const base = this.fields().filter((f) => !f.readOnly && f.type !== 'button' && f.type !== 'file');
+    return this.isQuestionnaire() ? base.filter((f) => f.type === 'codebook') : base;
+  });
+
+  /**
+   * Polja koja ulaze u payload IZMJENE (PUT je puna zamjena, ne merge).
+   *
+   * Za razliku od {@link editableFields}, NIJE suženo na upitnik: zaključana pitanja
+   * (tekst/broj) korisnik ne uređuje, ali se moraju poslati natrag nepromijenjena - inače bi
+   * ih puna zamjena izbrisala, a obavezno „pitanje" bi palo na validaciji. readOnly se i dalje
+   * izostavlja jer ga backend sam vraća iz spremljenog.
+   */
+  private readonly savableFields = computed(() =>
     this.fields().filter((f) => !f.readOnly && f.type !== 'button' && f.type !== 'file')
   );
 
@@ -1025,7 +1052,7 @@ export class DataView {
     }
     this.dialogError.set(null);
     const data: Record<string, FieldValue> = {};
-    for (const field of this.editableFields()) {
+    for (const field of this.savableFields()) {
       const value = this.editValues()[field.key];
       // polje koje je redak VEĆ imao šalje se natrag i kad ga korisnik ne dira,
       // inače bi se izgubilo (PUT je puna zamjena, ne merge)
@@ -1041,6 +1068,40 @@ export class DataView {
         this.cancelEdit();
       },
       error: this.failedInDialog('Spremanje izmjena nije uspjelo.')
+    });
+  }
+
+  /** Trenutna vrijednost ćelije kao FieldValue - za inline kontrolu odgovora u upitniku. */
+  protected answerValue(survey: Survey, field: SchemaField): FieldValue {
+    const value = survey.data?.[field.key];
+    return value !== undefined && value !== null ? (value as FieldValue) : initialValue(field);
+  }
+
+  /**
+   * Inline odgovor u upitniku: promjena šifrarničke ćelije se sprema ODMAH, bez olovčice i
+   * dijaloga. Ostala polja (pitanje, kategorija) šalju se natrag nepromijenjena, jer je PUT
+   * puna zamjena - preko {@link savableFields}, isto kao kod obične izmjene.
+   */
+  protected onInlineAnswer(survey: Survey, field: SchemaField, value: FieldValue): void {
+    const templateId = this.activeTemplateId();
+    if (templateId === null || survey.locked) {
+      return;
+    }
+    const data: Record<string, FieldValue> = {};
+    for (const f of this.savableFields()) {
+      const v = f.key === field.key ? value : this.answerValue(survey, f);
+      const wasPresent = !!survey.data && Object.prototype.hasOwnProperty.call(survey.data, f.key);
+      if (wasPresent || !isEmptyValue(v)) {
+        data[f.key] = v;
+      }
+    }
+    this.error.set(null);
+    this.surveyService.updateSurvey(templateId, survey.id, { data }).subscribe({
+      next: (updated) => {
+        this.surveys.set(this.surveys().map((s) => (s.id === updated.id ? updated : s)));
+        this.refreshGrownCodebooks(templateId, updated);
+      },
+      error: this.failed('Spremanje odgovora nije uspjelo.')
     });
   }
 
@@ -1082,6 +1143,12 @@ export class DataView {
       this.toggleLock(survey);
     } else if (field.options.buttonAction === 'related') {
       this.relatedFor.set({ field, surveyId: survey.id });
+    } else if (field.options.buttonAction === 'sbom') {
+      // Vodi na ekran SBOM evaluacije, noseći id i naziv OVOG zapisa - pa se evaluacije
+      // vežu baš uz taj produkt. Izmjenu zapisa ne radi, pa vrijedi i za zaključan zapis.
+      this.router.navigate(['/sbom'], {
+        queryParams: { product: survey.id, productName: this.surveyLabel(survey) }
+      });
     }
   }
 

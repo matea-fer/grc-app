@@ -11,6 +11,9 @@ public interface SbomEvaluationRepository extends JpaRepository<SbomEvaluation, 
     /** Evaluacije jedne firme, najnovije prvo. */
     List<SbomEvaluation> findByCompanyIdOrderByUploadedAtDescIdDesc(Long companyId);
 
+    /** Evaluacije jedne firme vezane uz jedan produkt, najnovije prvo. */
+    List<SbomEvaluation> findByCompanyIdAndProductIdOrderByUploadedAtDescIdDesc(Long companyId, Long productId);
+
     /**
      * Jedna evaluacija, ali samo ako pripada zadanoj firmi.
      *

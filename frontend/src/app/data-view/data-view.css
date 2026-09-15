@@ -1,3 +1,9 @@
+/* Napomena upitnika u traci - tiha, objašnjava zašto nema gumba "Dodaj zapis". */
+.questionnaire-note {
+  font-size: 13px;
+  color: var(--boja-tekst-prigusen);
+}
+
 /* Prazno stanje nije greška nego uputa - stoji na istoj bijeloj plohi kao i tablica
    koja će doći na njegovo mjesto, da ekran ne poskoči kad se podaci pojave. */
 .empty-state {

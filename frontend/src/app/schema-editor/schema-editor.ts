@@ -183,6 +183,30 @@ export class SchemaEditor {
     return this.templates().find((t) => t.id === id)?.name ?? null;
   });
 
+  /** Je li aktivni obrazac označen kao upitnik (retke definira admin, korisnik samo odgovara). */
+  protected readonly isQuestionnaire = computed(() => {
+    const id = this.activeTemplateId();
+    return this.templates().find((t) => t.id === id)?.questionnaire ?? false;
+  });
+
+  /**
+   * Uključi/isključi „upitnik" način. Kad je uključen, na ekranu Podaci korisnik ne dodaje ni
+   * ne briše retke - samo bira odgovor (šifrarnik). Retke (pitanja) definira administrator.
+   */
+  protected toggleQuestionnaire(value: boolean): void {
+    const id = this.activeTemplateId();
+    if (id === null) {
+      return;
+    }
+    this.templateService.setQuestionnaire(id, value).subscribe({
+      next: () => {
+        this.templateService.refresh().subscribe();
+        this.notify(value ? 'Obrazac je sada upitnik.' : 'Obrazac više nije upitnik.');
+      },
+      error: this.failed('Promjena nije uspjela.')
+    });
+  }
+
   /**
    * Šifre koje se nude kao zadana vrijednost: AKTIVNE, plus ona koja je na stupcu već
    * spremljena.

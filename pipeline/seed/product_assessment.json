@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "group": {
+    "name": "Demo GRC d.o.o."
+  },
+  "codebooks": [
+    {
+      "code": "odgovor_dane",
+      "name": "Odgovor (Da/Ne)",
+      "scope": "GLOBAL",
+      "_zasto": "Univerzalan Da/Ne odgovor upitnika -> GLOBAL, dijele ga svi.",
+      "items": [
+        {
+          "code": "da",
+          "name": "Da"
+        },
+        {
+          "code": "ne",
+          "name": "Ne"
+        }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "key": "product_assessment",
+      "name": "Product assessment",
+      "questionnaire": true,
+      "columns": [
+        {
+          "key": "rbr",
+          "label": "Rbr",
+          "type": "number",
+          "numberMode": "int"
+        },
+        {
+          "key": "kategorija",
+          "label": "Category",
+          "type": "string"
+        },
+        {
+          "key": "pitanje",
+          "label": "Question",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "odgovor",
+          "label": "Response",
+          "type": "codebook",
+          "codebook": "odgovor_dane"
+        }
+      ]
+    }
+  ],
+  "sampleRowsOrder": [
+    "product_assessment"
+  ],
+  "sampleRows": {
+    "product_assessment": [
+      {
+        "_key": "q1",
+        "rbr": 1,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Products with digital elements are designed, developed and produced in such a way that they ensure an appropriate level of cybersecurity based on the risks"
+      },
+      {
+        "_key": "q2",
+        "rbr": 2,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Products with digital elements are made available on the market without known exploitable vulnerabilities"
+      },
+      {
+        "_key": "q3",
+        "rbr": 3,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Products with digital elements are made available on the market with a secure by default configuration, unless otherwise agreed between manufacturer and business user in relation to a tailor-made product with digital elements, including the possibility to reset the product to its original state"
+      },
+      {
+        "_key": "q4",
+        "rbr": 4,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "Vulnerabilities can be addressed through security updates, including, where applicable, through automatic security updates that are installed within an appropriate timeframe enabled as a default setting, with a clear and easy-to-use opt-out mechanism, through the notification of available updates to users, and the option to temporarily postpone them"
+      },
+      {
+        "_key": "q5",
+        "rbr": 5,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Products with digital elements  are protected from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access"
+      },
+      {
+        "_key": "q6",
+        "rbr": 6,
+        "kategorija": "DATA",
+        "pitanje": "The integrity of stored, transmitted, or otherwise processed data, whether personal or other, as well as commands, programs, and configurations, has been protected against any manipulation or modification not authorized by the user, with reporting mechanisms in place for any detected corruptions."
+      },
+      {
+        "_key": "q7",
+        "rbr": 7,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Products with digital elements are protecting  the integrity of stored, transmitted or otherwise processed data, personal or other, commands, programs and configuration against any manipulation or modification not authorised by the user, and report on corruptions;"
+      },
+      {
+        "_key": "q8",
+        "rbr": 8,
+        "kategorija": "DATA",
+        "pitanje": "Only data, whether personal or other, that are adequate, relevant, and limited to what is necessary in relation to the intended purpose of the product with digital elements, have been processed, in accordance with the principle of data minimization."
+      },
+      {
+        "_key": "q9",
+        "rbr": 9,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "The availability of essential and basic functions has been protected, even after an incident, through resilience and mitigation measures against denial-of-service attacks."
+      },
+      {
+        "_key": "q10",
+        "rbr": 10,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Products with digital elements are minimising the negative impact by the products themselves or connected devices on the availability of services provided by other devices or networks"
+      },
+      {
+        "_key": "q11",
+        "rbr": 11,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Products with digital elements are designed, developed and produced to limit attack surfaces, including external interfaces"
+      },
+      {
+        "_key": "q12",
+        "rbr": 12,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Products with digital elements are designed, developed and produced to reduce the impact of an incident using appropriate exploitation mitigation mechanisms and techniques;"
+      },
+      {
+        "_key": "q13",
+        "rbr": 13,
+        "kategorija": "DATA",
+        "pitanje": "Security-related information has been provided by recording and monitoring relevant internal activity, including access to or modification of data, services, or functions, with an opt-out mechanism available for the user."
+      },
+      {
+        "_key": "q14",
+        "rbr": 14,
+        "kategorija": "DATA",
+        "pitanje": "The possibility for users to securely and easily remove, on a permanent basis, all data and settings has been provided. Where such data can be transferred to other products or systems, this has been done in a secure manner."
+      },
+      {
+        "_key": "q15",
+        "rbr": 15,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "Vulnerabilities and components contained in products with digital elements have been identified and documented, including by drawing up a software bill of materials in a commonly used and machine-readable format, covering at the very least the top-level dependencies of the products."
+      },
+      {
+        "_key": "q16",
+        "rbr": 16,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "In relation to the risks posed to products with digital elements, vulnerabilities have been addressed and remediated without delay, including through the provision of security updates. Where technically feasible, new security updates have been provided separately from functionality updates."
+      },
+      {
+        "_key": "q17",
+        "rbr": 17,
+        "kategorija": "PRODUCTS",
+        "pitanje": "Effective and regular tests and reviews of the security of the product with digital elements have been applied."
+      },
+      {
+        "_key": "q18",
+        "rbr": 18,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "Once a security update has been made available, information about fixed vulnerabilities has been shared and publicly disclosed, including a description of the vulnerabilities, information allowing users to identify the affected product with digital elements, the impacts of the vulnerabilities, their severity, and clear, accessible guidance to help users remediate the vulnerabilities. In duly justified cases, where manufacturers have determined that the security risks of publication outweigh the security benefits, public disclosure of information regarding a fixed vulnerability has been delayed until users have had the opportunity to apply the relevant patch"
+      },
+      {
+        "_key": "q19",
+        "rbr": 19,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "A policy on coordinated vulnerability disclosure has been put in place and enforced."
+      },
+      {
+        "_key": "q20",
+        "rbr": 20,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "Measures have been taken to facilitate the sharing of information about potential vulnerabilities in the product with digital elements, as well as in third-party components contained in that product, including the provision of a contact address for reporting discovered vulnerabilities."
+      },
+      {
+        "_key": "q21",
+        "rbr": 21,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "Mechanisms have been established to securely distribute updates for products with digital elements, ensuring that vulnerabilities are fixed or mitigated in a timely manner and, where applicable for security updates, in an automatic manner."
+      },
+      {
+        "_key": "q22",
+        "rbr": 22,
+        "kategorija": "VULNERABILITIES",
+        "pitanje": "Security updates addressing identified security issues have been disseminated without delay and, unless otherwise agreed between a manufacturer and a business user for a tailor-made product with digital elements, provided free of charge. These updates have been accompanied by advisory messages containing relevant information, including guidance on potential actions to be taken."
+      }
+    ]
+  }
+}

@@ -305,6 +305,73 @@
   --sjena-dijalog: 0 4px 24px rgba(24, 43, 76, 0.18);
 }
 
+/* --- korporativna --- premium svijetla tema za GRC kupce.
+   Cilj je dojam skupog "compliance SaaS-a" (Vanta/Drata): zracno i cisto, ali s
+   dubinom. Indigo je primarni (povjerenje, ozbiljnost), emerald je drugi naglasak
+   ("sukladno/uspjeh"), a tanka indigo->ljubicasto->cijan nit na vrhu svake kartice i
+   trake je potpis teme. Boje su birane za kontrast: naglasak i drugi naglasak prolaze
+   AA i na svojim tihim podlogama, jer u GRC-u tekst od 12px (znacke, brojaci) nosi znacenje. */
+[data-tema='korporativna'] {
+  color-scheme: light;
+
+  --boja-pozadina: #eef1f8;
+  --boja-povrsina: #ffffff;
+  --boja-povrsina-tiha: #f4f6fc;
+  --boja-rub: #e4e8f3;
+  --boja-rub-polja: #cbd2e6;
+  --boja-znacka: #eaeefb;
+
+  --boja-tekst: #202a44;
+  --boja-tekst-prigusen: #67718c;
+  --boja-naslov: #141d38;
+
+  --boja-akcent: #4f46e5;          /* indigo - gumb, poveznica, fokus */
+  --boja-akcent-tamna: #4338ca;
+  --boja-akcent-tiha: #e9e8fc;     /* podloga naglasenog retka / znacke */
+  --boja-akcent-tekst: #ffffff;
+  --boja-akcent-blijeda: #c6c8f0;
+  --boja-odabir: #4f46e5;
+  --boja-akcent-2: #0b6b4f;        /* emerald - brojaci, znacke, "sukladno"; 4.9:1 na akcent-tiha */
+
+  --gradijent-akcent: linear-gradient(135deg, #6366f1, #4f46e5);
+  --gradijent-akcent-hover: linear-gradient(135deg, #4f46e5, #4338ca);
+  /* mekani indigo sjaj oko glavnog gumba i fokusa - dubina, ne blještavilo */
+  --sjaj-akcent: 0 1px 2px rgba(79, 70, 229, 0.28), 0 8px 20px rgba(79, 70, 229, 0.18);
+  --sjena-kartica: 0 1px 2px rgba(20, 29, 56, 0.05), 0 6px 20px rgba(20, 29, 56, 0.07);
+
+  --gradijent-naslova: linear-gradient(120deg, #4338ca, #7c3aed);
+  --traka-kartice: linear-gradient(90deg, #6366f1, #7c3aed, #06b6d4);
+  --klizac: #b9bee4 #eef1f8;
+
+  --boja-gumb-rub: #cbd2e6;
+  --boja-gumb-tekst: #4338ca;
+
+  --pozadina-zaglavlja: #f4f6fc;
+  --boja-zaglavlja-tekst: #141d38;
+  --oznaka-retka: inset 3px 0 0 #6366f1;
+  --rub-pilule: rgba(79, 70, 229, 0.18);
+  --boja-redak-hover: #f4f6fc;
+
+  /* Traka ostaje bijela i zracna; potpisna gradijentna nit ide ispod nje kroz
+     --traka-kartice, pa je "premium" detalj, a ne obojena ploha. */
+  --boja-traka: #ffffff;
+  --boja-traka-tekst: #141d38;
+  --boja-traka-rub: #e4e8f3;
+  --boja-traka-tiha: #f4f6fc;
+  --boja-traka-akcent: #4f46e5;
+
+  --boja-greska: #fda4af;          /* rizik/greska - ruzicasta ploha celije */
+  --boja-greska-tiha: #fef2f4;
+  --boja-greska-tekst: #be123c;
+  --boja-uspjeh: #0b6b4f;
+  --boja-upozorenje: #92400e;
+  --boja-upozorenje-tiha: #fef4e6;
+  --boja-upozorenje-rub: #f3d19b;
+
+  --radijus: 10px;                 /* mekse od firmine tablice - moderni SaaS */
+  --sjena-dijalog: 0 16px 48px rgba(20, 29, 56, 0.20);
+}
+
 /* ===================== OSNOVA ===================== */
 
 body {
@@ -965,4 +1032,157 @@ td select {
   background: var(--boja-akcent-tiha);
   border: 1px solid var(--rub-pilule);
   border-radius: var(--radijus-pilula);
+}
+
+/* ===================== POLIRANJE I MIKRO-INTERAKCIJE =====================
+   Suptilni prijelazi i podizanje na hover. Vrijede u SVIM temama jer ne uvode
+   nijednu boju - samo pokret i dubinu iz postojecih tokena (sjena, gradijent).
+   Cilj: sucelje koje se doima skupljim i "zivim", a da ostane mirno.
+
+   Sve stoji iza prefers-reduced-motion: no-preference - korisnik koji trazi manje
+   pokreta (vestibularni razlozi, ustednja baterije) dobije mirno, staticno sucelje. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Meki prijelaz na svemu sto se klika ili u sto se upisuje - i pri hoveru i pri
+     promjeni teme boje "otpuze" umjesto da skoce. */
+  .add-toggle-button,
+  .form-actions button,
+  .picker-actions button,
+  .editor-actions button,
+  .small-button,
+  .filter-add-button,
+  .cell-button,
+  .pager-button,
+  .new-value button,
+  .icon-button,
+  .logout-button,
+  .retry-button,
+  .form-field input,
+  .form-field select,
+  .filter-bar input,
+  .filter-bar select,
+  .picker-button,
+  a {
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+      box-shadow 0.18s ease, color 0.15s ease, transform 0.12s ease;
+  }
+
+  /* Glavna radnja se na hover lagano podigne - "pritisni me" postane opipljivo. */
+  .form-actions .primary:hover:not(:disabled),
+  .picker-actions .primary:hover:not(:disabled),
+  .editor-actions .primary:hover:not(:disabled),
+  .primary-action:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  /* Klik "utisne" gumb - kratak taktilni odgovor. */
+  .add-toggle-button:active:not(:disabled),
+  .small-button:active:not(:disabled),
+  .form-actions button:active:not(:disabled),
+  .picker-actions button:active:not(:disabled),
+  .primary-action:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Kartice i tablice dobiju malo dublju sjenu na hover - ploha "izadje" iz pozadine. */
+  .survey-form-card,
+  .table-scroll,
+  .kpi-tile,
+  .sev-tile {
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .survey-form-card:hover,
+  .table-scroll:hover {
+    border-color: var(--boja-rub-polja);
+  }
+
+  /* KPI i severity plocice na dashboardima - podignu se i pojacaju sjenu. Upravo taj
+     detalj razdvaja "tablica brojeva" od "nadzorne ploce koja izgleda skupo". */
+  .kpi-tile:hover,
+  .sev-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sjena-dijalog);
+    border-color: var(--rub-pilule);
+  }
+
+  /* Trake u raspodjelama izrastu do svoje sirine kad podaci stignu - dashboard ozivi. */
+  .bar-fill {
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Redak pod misem mijenja podlogu glatko, ne naglo. */
+  tbody tr > td {
+    transition: background-color 0.12s ease;
+  }
+}
+
+/* Poveznice: profinjen razmak podvlaka - sitnica koju oko primijeti kao "dizajnirano". */
+a {
+  text-underline-offset: 2px;
+}
+
+/* ===================== PREMIUM SLOJ (moderni SaaS dashboard) =====================
+   Reskin prema referentnim admin-dashboardima: vece zaobljenje, vise zraka, profinjene
+   tablice i pilule. Sve preko tokena - nijedna nova BOJA; nove su samo STRUKTURNE mjere
+   (radijusi), a one stoje u :root pa ih sve teme naslijede (kao --razmak i --visina-retka).
+   Stoji na kraju datoteke da, uz jednaku specificnost, pobijedi ranija pravila. */
+
+:root {
+  --radijus-kartica: 16px;   /* kartice, tablice, dijalozi - meko, "skupo" */
+  --radijus-gumb: 10px;      /* gumbi - zaobljeni kao na referencama, i u temama s ostrim --radijus */
+}
+
+/* --- Kartice, tablice i dijalozi: mekse i zracnije plohe --- */
+.survey-form-card {
+  padding: 1.5rem 1.75rem;
+  border-radius: var(--radijus-kartica);
+}
+.table-scroll {
+  border-radius: var(--radijus-kartica);
+}
+.modal-dialog {
+  border-radius: var(--radijus-kartica);
+}
+
+/* --- Gumbi: dosljedno zaobljeni u SVIM temama, glavni s malo vise tijela --- */
+.add-toggle-button,
+.form-actions button,
+.picker-actions button,
+.editor-actions button,
+.small-button,
+.filter-add-button,
+.pager-button,
+.new-value button,
+.logout-button,
+.retry-button,
+.primary-action,
+.cell-button {
+  border-radius: var(--radijus-gumb);
+}
+.form-actions .primary,
+.picker-actions .primary,
+.editor-actions .primary,
+.primary-action {
+  padding-inline: 20px;
+  letter-spacing: 0.01em;
+}
+
+/* --- Tablica: zracniji redci + micro-caps zaglavlje (kao u referentnoj tablici) --- */
+th,
+td {
+  height: 44px;
+  padding: 8px 14px;
+}
+th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--boja-tekst-prigusen);
+}
+
+/* --- Pilule i znacke: malo vise daha oko teksta --- */
+.chip,
+.active-badge {
+  padding: 2px 10px;
 }

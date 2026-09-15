@@ -12,6 +12,8 @@ import java.time.Instant;
  */
 public record SbomEvaluationResponse(
         Long id,
+        Long productId,
+        String productName,
         String fileName,
         SbomStatus status,
         Instant uploadedAt,
@@ -30,6 +32,8 @@ public record SbomEvaluationResponse(
     public static SbomEvaluationResponse from(SbomEvaluation e) {
         return new SbomEvaluationResponse(
                 e.getId(),
+                e.getProductId(),
+                e.getProductName(),
                 e.getFileName(),
                 e.getStatus(),
                 e.getUploadedAt(),

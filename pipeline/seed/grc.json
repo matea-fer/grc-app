@@ -88,6 +88,18 @@
       { "code": "zavrsen", "name": "Završen" },
       { "code": "kasni", "name": "Kasni" }
     ]},
+    { "code": "vrste_produkta", "name": "Vrste produkta", "scope": "TENANT",
+      "_zasto": "Zasad su produkti softver; hardver/usluga su pripremljeni za kasnije.", "items": [
+      { "code": "softver", "name": "Softver" },
+      { "code": "hardver", "name": "Hardver" },
+      { "code": "usluga", "name": "Usluga" }
+    ]},
+    { "code": "statusi_produkta", "name": "Statusi produkta", "scope": "TENANT", "items": [
+      { "code": "u_razvoju", "name": "U razvoju" },
+      { "code": "aktivan", "name": "Aktivan" },
+      { "code": "podrska", "name": "Održavanje / podrška" },
+      { "code": "povucen", "name": "Povučen" }
+    ]},
 
     { "code": "okviri", "name": "Okviri i standardi", "scope": "GLOBAL",
       "_zasto": "Standardi (ISO, GDPR, NIS2, DORA) su isti za sve grupe -> GLOBAL po dogovoru.", "items": [
@@ -158,11 +170,26 @@
       { "key": "status", "label": "Status", "type": "codebook", "codebook": "statusi_zadatka" },
       { "key": "povezani_rizik", "label": "Povezani rizik", "type": "reference", "reference": "rizici", "display": "naziv", "onTargetDelete": "clear" },
       { "key": "povezana_samoprocjena", "label": "Povezana samoprocjena", "type": "reference", "reference": "samoprocjena", "display": "naziv", "onTargetDelete": "clear" }
+    ]},
+    { "key": "produkti", "name": "Produkti", "columns": [
+      { "key": "naziv", "label": "Naziv", "type": "string", "required": true },
+      { "key": "vrsta", "label": "Vrsta", "type": "codebook", "codebook": "vrste_produkta" },
+      { "key": "verzija", "label": "Verzija", "type": "string" },
+      { "key": "vlasnik", "label": "Vlasnik / tim", "type": "string" },
+      { "key": "repozitorij", "label": "Repozitorij / URL", "type": "string" },
+      { "key": "opis", "label": "Opis", "type": "string" },
+      { "key": "status", "label": "Status", "type": "codebook", "codebook": "statusi_produkta" },
+      { "key": "sbom", "label": "Evaluacija SBOM-a", "type": "button", "buttonAction": "sbom", "buttonLabel": "Evaluacija SBOM-a" }
     ]}
   ],
 
-  "sampleRowsOrder": ["dobavljaci", "imovina", "rizici", "samoprocjena", "zadaci"],
+  "sampleRowsOrder": ["produkti", "dobavljaci", "imovina", "rizici", "samoprocjena", "zadaci"],
   "sampleRows": {
+    "produkti": [
+      { "_key": "p1", "naziv": "GRC Web Portal", "vrsta": "softver", "verzija": "2.4.1", "vlasnik": "Tim Platforma", "repozitorij": "https://git.example.com/grc-web", "opis": "Web sučelje GRC platforme", "status": "aktivan" },
+      { "_key": "p2", "naziv": "Risk API Servis", "vrsta": "softver", "verzija": "1.8.0", "vlasnik": "Tim Backend", "repozitorij": "https://git.example.com/risk-api", "opis": "REST servis za module rizika", "status": "aktivan" },
+      { "_key": "p3", "naziv": "Data Import Alat", "vrsta": "softver", "verzija": "0.9.3", "vlasnik": "Tim Podaci", "repozitorij": "https://git.example.com/data-import", "opis": "ETL alat za uvoz podataka", "status": "u_razvoju" }
+    ],
     "dobavljaci": [
       { "_key": "d1", "naziv": "CloudHost d.o.o.", "oib": "12345678901", "kontakt_osoba": "Ivan Horvat", "email": "ivan@cloudhost.hr", "kategorija": "cloud_hosting", "kriticnost": "visoka", "status": "aktivan" },
       { "_key": "d2", "naziv": "SecureIT j.d.o.o.", "oib": "09876543210", "kontakt_osoba": "Maja Kovač", "email": "maja@secureit.hr", "kategorija": "it_usluge", "kriticnost": "srednja", "status": "aktivan" },

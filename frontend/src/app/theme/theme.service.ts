@@ -8,7 +8,7 @@ import { Injectable, computed, signal } from '@angular/core';
  * korisnik koji je izabrao „kao sustav" ne želi da mu se odabir pretvori u „tamna" čim
  * jednom padne mrak.
  */
-export type Tema = 'sustav' | 'svijetla' | 'tamna' | 'ljubicasta' | 'mornarska';
+export type Tema = 'sustav' | 'svijetla' | 'korporativna' | 'tamna' | 'ljubicasta' | 'mornarska';
 
 /** Teme koje stvarno postoje kao skup vrijednosti tokena u `styles.css`. */
 export type PrimijenjenaTema = Exclude<Tema, 'sustav'>;
@@ -17,6 +17,7 @@ export type PrimijenjenaTema = Exclude<Tema, 'sustav'>;
 export const TEME: ReadonlyArray<{ kljuc: Tema; naziv: string }> = [
   { kljuc: 'sustav', naziv: 'Kao sustav' },
   { kljuc: 'svijetla', naziv: 'Svijetla' },
+  { kljuc: 'korporativna', naziv: 'Korporativna' },
   { kljuc: 'tamna', naziv: 'Tamna' },
   { kljuc: 'ljubicasta', naziv: 'Ljubičasta' },
   { kljuc: 'mornarska', naziv: 'Mornarska' }

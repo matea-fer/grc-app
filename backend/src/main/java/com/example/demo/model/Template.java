@@ -39,6 +39,14 @@ public class Template {
     @Column(columnDefinition = "jsonb")
     private List<ColumnEntry> definitions = new ArrayList<>();
 
+    /**
+     * Je li obrazac UPITNIK: retke (pitanja) definira administrator u Editoru i vide se na
+     * svakoj instanci, a korisnik ih ne dodaje ni ne brise - samo bira odgovor (sifrarnik).
+     * Obican obrazac (false) radi kao i dosad.
+     */
+    @Column(nullable = false)
+    private boolean questionnaire = false;
+
     // Cijeli redak se cita, mijenja i pise natrag. Bez ovoga bi dvije
     // istovremene izmjene rezultirale time da druga pregazi prvu ("lost update").
     @Version
@@ -82,6 +90,14 @@ public class Template {
 
     public void setDefinitions(List<ColumnEntry> definitions) {
         this.definitions = definitions;
+    }
+
+    public boolean isQuestionnaire() {
+        return questionnaire;
+    }
+
+    public void setQuestionnaire(boolean questionnaire) {
+        this.questionnaire = questionnaire;
     }
 
     public Long getVersion() {

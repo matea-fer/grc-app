@@ -23,7 +23,10 @@ import java.time.Instant;
 @Entity
 @Table(
         name = "sbom_evaluation",
-        indexes = { @Index(name = "ix_sbom_evaluation_company", columnList = "company_id") }
+        indexes = {
+                @Index(name = "ix_sbom_evaluation_company", columnList = "company_id"),
+                @Index(name = "ix_sbom_evaluation_product", columnList = "product_id")
+        }
 )
 public class SbomEvaluation {
 
@@ -33,6 +36,14 @@ public class SbomEvaluation {
 
     @Column(name = "company_id", nullable = false)
     private Long companyId;
+
+    /** Zapis-produkt (survey_result.id) uz koji je SBOM vezan; null za samostalnu evaluaciju. */
+    @Column(name = "product_id")
+    private Long productId;
+
+    /** Naziv produkta u trenutku uploada - da ekran ima naziv i kad se produkt kasnije promijeni. */
+    @Column(name = "product_name")
+    private String productName;
 
     @Column(name = "file_name", nullable = false)
     private String fileName;
@@ -107,6 +118,22 @@ public class SbomEvaluation {
 
     public void setCompanyId(Long companyId) {
         this.companyId = companyId;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public String getFileName() {

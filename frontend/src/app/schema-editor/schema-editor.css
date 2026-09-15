@@ -141,3 +141,8 @@
   border-radius: var(--radijus);
   background: var(--boja-akcent-tiha);
 }
+
+/* Toggle "Upitnik" stoji izmedu naslova stupaca i trake - malo zraka oko sebe. */
+.questionnaire-toggle {
+  margin: 0 0 1rem;
+}

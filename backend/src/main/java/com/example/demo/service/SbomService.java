@@ -58,7 +58,7 @@ public class SbomService {
         this.maxSizeBytes = maxSizeKb * 1024;
     }
 
-    public SbomEvaluationResponse upload(MultipartFile file) {
+    public SbomEvaluationResponse upload(MultipartFile file, Long productId, String productName) {
         Long companyId = tenantContext.require();
         requireAcceptable(file);
 
@@ -70,23 +70,28 @@ public class SbomService {
         }
 
         String fileName = safeFileName(file.getOriginalFilename());
-        SbomEvaluation evaluation = repository.save(
-                new SbomEvaluation(companyId, fileName, authContext.require().username()));
+        SbomEvaluation evaluation = new SbomEvaluation(companyId, fileName, authContext.require().username());
+        evaluation.setProductId(productId);
+        evaluation.setProductName(clip(productName));
+        evaluation = repository.save(evaluation);
 
         // Pokrece se na pozadinskoj niti; zapis je vec commitan (metoda nije @Transactional).
         grypeRunner.run(evaluation.getId(), bytes);
 
-        log.info("SBOM uploadan id={} ({} B), firma={}", evaluation.getId(), bytes.length, companyId);
+        log.info("SBOM uploadan id={} ({} B), firma={}, produkt={}",
+                evaluation.getId(), bytes.length, companyId, productId);
         logService.record("SBOM_UPLOADED",
-                "SBOM \"" + fileName + "\" (id=" + evaluation.getId() + ") predan na analizu");
+                "SBOM \"" + fileName + "\" (id=" + evaluation.getId() + ") predan na analizu"
+                        + (productId == null ? "" : " za produkt id=" + productId));
         return SbomEvaluationResponse.from(evaluation);
     }
 
-    public List<SbomEvaluationResponse> list() {
+    public List<SbomEvaluationResponse> list(Long productId) {
         Long companyId = tenantContext.require();
-        return repository.findByCompanyIdOrderByUploadedAtDescIdDesc(companyId).stream()
-                .map(SbomEvaluationResponse::from)
-                .toList();
+        List<SbomEvaluation> rows = productId == null
+                ? repository.findByCompanyIdOrderByUploadedAtDescIdDesc(companyId)
+                : repository.findByCompanyIdAndProductIdOrderByUploadedAtDescIdDesc(companyId, productId);
+        return rows.stream().map(SbomEvaluationResponse::from).toList();
     }
 
     public SbomEvaluationDetailResponse detail(Long id) {
@@ -94,10 +99,11 @@ public class SbomService {
         SbomEvaluation e = repository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new ResourceNotFoundException("SbomEvaluation", id));
         return new SbomEvaluationDetailResponse(
-                e.getId(), e.getFileName(), e.getStatus(), e.getUploadedAt(), e.getFinishedAt(),
-                e.getUploadedBy(), e.getToolVersion(), e.getTotalCount(), e.getCriticalCount(),
-                e.getHighCount(), e.getMediumCount(), e.getLowCount(), e.getNegligibleCount(),
-                e.getUnknownCount(), e.getErrorMessage(), parseVulnerabilities(e.getVulnerabilities()));
+                e.getId(), e.getProductId(), e.getProductName(), e.getFileName(), e.getStatus(),
+                e.getUploadedAt(), e.getFinishedAt(), e.getUploadedBy(), e.getToolVersion(),
+                e.getTotalCount(), e.getCriticalCount(), e.getHighCount(), e.getMediumCount(),
+                e.getLowCount(), e.getNegligibleCount(), e.getUnknownCount(), e.getErrorMessage(),
+                parseVulnerabilities(e.getVulnerabilities()));
     }
 
     public void delete(Long id) {
@@ -130,6 +136,18 @@ public class SbomService {
             throw new InvalidSbomException(
                     "Datoteka je prevelika (najviše " + (maxSizeBytes / 1024 / 1024) + " MB).");
         }
+    }
+
+    /** Naziv produkta skracen na duljinu stupca (255); prazno -> null. */
+    private String clip(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        return trimmed.length() > 255 ? trimmed.substring(0, 255) : trimmed;
     }
 
     /** Ime bez putanje i upravljackih znakova - isti razlog kao kod priloga. */

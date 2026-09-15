@@ -8,6 +8,7 @@ import com.example.demo.dto.PageResponse;
 import com.example.demo.dto.RelatedGroupResponse;
 import com.example.demo.dto.SurveyResponse;
 import com.example.demo.dto.UpdateSurveyRequest;
+import com.example.demo.exception.ForbiddenException;
 import com.example.demo.exception.RecordLockedException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.SchemaValidationException;
@@ -161,6 +162,7 @@ public class SurveyResultService {
     @Transactional
     public SurveyResponse create(Long templateId, CreateSurveyRequest request) {
         Template template = templateService.requireOwned(templateId);
+        requireCanManageQuestionnaireRows(template);
         List<ColumnDefinitionResponse> schema = columnDefinitionService.getForTemplate(templateId);
         Map<String, Object> data = prepare(templateId, request.data(), schema, null);
         validator.validate(data, schema, uniqueLookup(templateId, null));
@@ -290,6 +292,7 @@ public class SurveyResultService {
 
     @Transactional
     public void delete(Long templateId, Long id) {
+        requireCanManageQuestionnaireRows(templateService.requireOwned(templateId));
         SurveyResult surveyResult = findOwnedOrThrow(templateId, id);
         // brisanje je izmjena kao i svaka druga - zapravo najveca; zakljucan zapis je ne trpi
         requireUnlocked(surveyResult);
@@ -576,6 +579,18 @@ public class SurveyResultService {
         return repository.findById(id)
                 .filter(survey -> templateId.equals(survey.getTemplateId()))
                 .orElseThrow(() -> new ResourceNotFoundException("SurveyResult", id));
+    }
+
+    /**
+     * Na obrascu-upitniku retke (pitanja) dodaje i brise SAMO administrator - u Editoru
+     * obrazaca. Korisnik na instanci samo bira odgovor (izmjena zapisa je dopustena svima).
+     * Obican obrazac ovime nije diran.
+     */
+    private void requireCanManageQuestionnaireRows(Template template) {
+        if (template.isQuestionnaire() && !authContext.require().isAnyAdmin()) {
+            throw new ForbiddenException("Ovo je upitnik: retke (pitanja) dodaje ili briše samo "
+                    + "administrator u Editoru obrazaca. Korisnik samo bira odgovor.");
+        }
     }
 
     /**

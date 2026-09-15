@@ -78,7 +78,8 @@ public class ColumnDefinitionService {
      * zapisa u kojima ih jos nije bilo.
      */
     private static final List<String> BUTTON_ACTIONS =
-            List.of(ColumnOptions.ACTION_HISTORY, ColumnOptions.ACTION_LOCK, ColumnOptions.ACTION_RELATED);
+            List.of(ColumnOptions.ACTION_HISTORY, ColumnOptions.ACTION_LOCK, ColumnOptions.ACTION_RELATED,
+                    ColumnOptions.ACTION_SBOM);
 
     /** Sto se dogada s vezama kad se ciljani zapis brise. */
     private static final List<String> ON_DELETE_MODES =

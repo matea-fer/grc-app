@@ -213,6 +213,9 @@ def column_body(col, codebook_id_map, template_id_map):
         options["targetTemplateId"] = template_id_map[col["reference"]]
         options["displayColumnKey"] = col.get("display", "naziv")
         options["onTargetDelete"] = col.get("onTargetDelete", "restrict")
+    elif ctype == "button":
+        options["buttonLabel"] = col.get("buttonLabel", col.get("label", "Akcija"))
+        options["buttonAction"] = col["buttonAction"]
     return body
 
 
@@ -253,8 +256,26 @@ def run_import(api, seed, tenant_login_needed=True):
                 die(status, created, "POST /api/codebooks '%s'" % cb["name"])
             cb_id = created["id"]
             made_cb += 1
-        # stavke: puna zamjena (idempotentno) -> uvijek poravnaj sa seedom
-        items = [{"code": it["code"], "name": it["name"]} for it in cb.get("items", [])]
+        # stavke: PUT je puna zamjena, pa uparujemo po sifri da postojeca stavka dobije svoj
+        # id (update u mjestu) umjesto da bude obrisana i ponovno stvorena. Bez toga bi drugo
+        # pokretanje pokusalo obrisati stavku koja je vec upisana u zapise -> 409. Postojece
+        # stavke kojih u seedu nema se CUVAJU (ne brisemo nista).
+        status, current = api.get("/api/codebooks/%s/items" % cb_id, tenant=tenant)
+        current = current if status == 200 and isinstance(current, list) else []
+        by_code = {c["code"]: c for c in current}
+        seen = set()
+        items = []
+        for it in cb.get("items", []):
+            entry = {"code": it["code"], "name": it["name"]}
+            match = by_code.get(it["code"])
+            if match:
+                entry["id"] = match["id"]
+            items.append(entry)
+            seen.add(it["code"])
+        for c in current:
+            if c["code"] not in seen:
+                items.append({"id": c["id"], "code": c["code"], "name": c["name"],
+                              "active": c.get("active", True)})
         status, saved = api.put("/api/codebooks/%s/items" % cb_id, {"items": items}, tenant=tenant)
         if status not in (200, 201):
             die(status, saved, "PUT /api/codebooks/%s/items '%s'" % (cb_id, cb["name"]))
@@ -277,6 +298,13 @@ def run_import(api, seed, tenant_login_needed=True):
             t_id = created["id"]
             made_t += 1
         template_id_map[tpl["key"]] = t_id
+        # Upitnik: retke definira admin (ovaj uvoz), korisnik samo bira odgovor. Backend to
+        # provodi; endpoint postoji od V11 (ako uvoz padne s 404, backend nije restartan).
+        if tpl.get("questionnaire"):
+            status, resp = api.put("/api/templates/%s/questionnaire?value=true" % t_id, None,
+                                   tenant=company_id)
+            if status not in (200, 201):
+                die(status, resp, "PUT /api/templates/%s/questionnaire (treba restart backenda za V11)" % t_id)
     print("  obrasci: %s novih, %s ukupno" % (made_t, len(seed.get("templates", []))))
 
     # 4) stupci - PROLAZ 1: sve osim veza (ukljucujuci formule) -----------------
@@ -302,26 +330,23 @@ def run_import(api, seed, tenant_login_needed=True):
                 made_c += 1
     print("  stupci: %s novih deklarirano" % made_c)
 
-    # 6) demo zapisi - samo ako su SVI ciljani obrasci prazni -------------------
+    # 6) demo zapisi - u SVAKI obrazac koji je PRAZAN (per-form). Popunjen se preskace, da
+    #    drugo pokretanje ne duplicira ni ne vraca namjerno obrisane zapise. Reference se
+    #    razrjesavaju unutar istog pokretanja (obrasci-ciljevi idu prvi u sampleRowsOrder);
+    #    ako cilj u ovom pokretanju nije uvezen (vec je bio popunjen), to se polje izostavi.
     order = seed.get("sampleRowsOrder", list(seed.get("sampleRows", {}).keys()))
-    counts = {}
+    schema = {t["key"]: {c["key"]: c for c in t["columns"]} for t in seed["templates"]}
+    row_id_map = {tk: {} for tk in order}   # template key -> _key -> created id
+    made_r = 0
+    skipped = []
     for tk in order:
         t_id = template_id_map[tk]
         status, page = api.get("/api/templates/%s/surveys?page=0" % t_id, tenant=company_id)
         if status != 200:
             die(status, page, "GET surveys %s" % tk)
-        counts[tk] = page["totalElements"]
-    non_empty = [tk for tk, n in counts.items() if n > 0]
-    if non_empty:
-        print("  zapisi: PRESKACEM demo zapise - vec postoje u: %s"
-              % ", ".join("%s(%s)" % (tk, counts[tk]) for tk in non_empty))
-        return
-
-    schema = {t["key"]: {c["key"]: c for c in t["columns"]} for t in seed["templates"]}
-    row_id_map = {tk: {} for tk in order}   # template key -> _key -> created id
-    made_r = 0
-    for tk in order:
-        t_id = template_id_map[tk]
+        if page["totalElements"] > 0:
+            skipped.append("%s(%s)" % (tk, page["totalElements"]))
+            continue
         cols = schema[tk]
         for r in seed["sampleRows"].get(tk, []):
             data = {}
@@ -329,11 +354,16 @@ def run_import(api, seed, tenant_login_needed=True):
                 if field.startswith("_"):
                     continue
                 col = cols[field]
-                if col["type"] == "reference":
-                    target = col["reference"]
-                    data[field] = row_id_map[target][val]     # _key -> stvarni id
-                elif col["type"] == "formula":
-                    continue                                   # racuna server
+                ctype = col["type"]
+                if ctype == "reference":
+                    resolved = row_id_map.get(col["reference"], {}).get(val)
+                    if resolved is None:
+                        print("    upozorenje: %s/%s veza '%s'='%s' nije razrijesena (cilj nije "
+                              "uvezen u ovom pokretanju) - izostavljam" % (tk, r.get("_key"), field, val))
+                        continue
+                    data[field] = resolved
+                elif ctype in ("formula", "button"):
+                    continue                                   # nemaju vrijednost u zapisu
                 else:
                     data[field] = val
             status, created = api.post("/api/templates/%s/surveys" % t_id, {"data": data}, tenant=company_id)
@@ -341,7 +371,10 @@ def run_import(api, seed, tenant_login_needed=True):
                 die(status, created, "POST survey %s/%s" % (tk, r.get("_key")))
             row_id_map[tk][r["_key"]] = created["id"]
             made_r += 1
-    print("  zapisi: %s demo zapisa uvezeno" % made_r)
+    msg = "  zapisi: %s demo zapisa uvezeno" % made_r
+    if skipped:
+        msg += " (preskoceni popunjeni obrasci: %s)" % ", ".join(skipped)
+    print(msg)
 
 
 # --------------------------------------------------------------------------- #

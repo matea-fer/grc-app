@@ -11,6 +11,8 @@ import java.util.List;
  */
 public record SbomEvaluationDetailResponse(
         Long id,
+        Long productId,
+        String productName,
         String fileName,
         SbomStatus status,
         Instant uploadedAt,

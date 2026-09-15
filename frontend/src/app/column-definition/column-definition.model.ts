@@ -41,7 +41,7 @@ export type DateMode = 'date' | 'datetime';
  * Postavka je od početka NAZIV radnje, a ne zastavica - zato je svaka sljedeća radnja dodala
  * samo jednu vrijednost, umjesto nove postavke i novog grananja na svakom mjestu.
  */
-export type ButtonAction = 'history' | 'lock' | 'related';
+export type ButtonAction = 'history' | 'lock' | 'related' | 'sbom';
 
 /**
  * Što se događa s vezama kad se obriše zapis na koji pokazuju.

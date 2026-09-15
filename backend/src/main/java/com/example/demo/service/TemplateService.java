@@ -112,6 +112,21 @@ public class TemplateService {
     }
 
     /**
+     * Ukljuci/iskljuci "upitnik" nacin za obrazac. Kao i uredivanje sheme, smije samo
+     * administrator (requireEditable). Kad je ukljucen, retke dodaje/brise samo administrator,
+     * a korisnik na Podacima samo bira odgovor - provodi {@code SurveyResultService}.
+     */
+    public TemplateResponse setQuestionnaire(Long id, boolean value) {
+        Template template = requireEditable(id);
+        template.setQuestionnaire(value);
+        Template saved = repository.save(template);
+        log.info("Template id={} questionnaire={}", saved.getId(), value);
+        logService.record("TEMPLATE_UPDATED",
+                "Obrazac id=" + id + (value ? " označen kao upitnik" : " više nije upitnik"));
+        return TemplateResponse.from(saved);
+    }
+
+    /**
      * Jedna stranica zapisa ovog obrasca kao ponuda za vezu: samo id i naziv, uz pretragu.
      *
      * Stoji ovdje, a ne uz zapise, jer je to pogled na OBRAZAC kao izvor ponude - trazi ga

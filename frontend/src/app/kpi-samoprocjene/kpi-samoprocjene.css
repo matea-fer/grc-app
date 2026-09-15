@@ -12,26 +12,30 @@
 .kpi-tile {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 1rem 1.25rem;
+  gap: 6px;
+  padding: 1.35rem 1.5rem;
   background-color: var(--boja-povrsina);
   background-image: var(--traka-kartice);
   background-repeat: no-repeat;
   background-size: 100% 3px;
   border: 1px solid var(--boja-rub);
-  border-radius: var(--radijus);
+  border-radius: var(--radijus-kartica, 16px);
   box-shadow: var(--sjena-kartica);
 }
 
 .kpi-value {
-  font-size: 28px;
+  font-size: 34px;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--boja-akcent-2);
   font-variant-numeric: tabular-nums;
 }
 
 .kpi-label {
-  font-size: 13px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--boja-tekst-prigusen);
 }
 

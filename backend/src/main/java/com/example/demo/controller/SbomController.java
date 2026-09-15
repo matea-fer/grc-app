@@ -26,17 +26,22 @@ public class SbomController {
         this.service = service;
     }
 
-    // POST /api/sbom (multipart, polje "file") - pokrece analizu, vraca PENDING zapis
+    // POST /api/sbom (multipart, polje "file") - pokrece analizu, vraca PENDING zapis.
+    // productId/productName su neobavezni: kad se ekran otvori iz zapisa produkta, evaluacija
+    // se vezuje bas uz taj produkt.
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public SbomEvaluationResponse upload(@RequestParam("file") MultipartFile file) {
-        return service.upload(file);
+    public SbomEvaluationResponse upload(@RequestParam("file") MultipartFile file,
+                                         @RequestParam(value = "productId", required = false) Long productId,
+                                         @RequestParam(value = "productName", required = false) String productName) {
+        return service.upload(file, productId, productName);
     }
 
-    // GET /api/sbom - popis evaluacija firme, najnovije prvo (za polling statusa)
+    // GET /api/sbom - popis evaluacija firme (ili samo jednog produkta uz ?productId=...),
+    // najnovije prvo (za polling statusa)
     @GetMapping
-    public List<SbomEvaluationResponse> list() {
-        return service.list();
+    public List<SbomEvaluationResponse> list(@RequestParam(value = "productId", required = false) Long productId) {
+        return service.list(productId);
     }
 
     // GET /api/sbom/5 - jedna evaluacija s popisom ranjivosti (404 ako je tuđa)
