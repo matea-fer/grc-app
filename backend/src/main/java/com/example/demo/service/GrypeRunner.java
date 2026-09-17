@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 /**
  * Pokrece Grype nad uploadanim SBOM-om, u POZADINI, i upisuje rezultat u
@@ -42,11 +44,17 @@ import java.util.concurrent.TimeUnit;
 public class GrypeRunner {
     private static final Logger log = LoggerFactory.getLogger(GrypeRunner.class);
 
-    /** Grype odbija skenirati s bazom starijom od 5 dana; ovime koristi zatecenu, bez mreze. */
-    private static final Map<String, String> GRYPE_ENV = Map.of(
+    /**
+     * CLI nacin: lokalni grype vec ima bazu, pa je ne diramo ni ne skidamo (radi offline).
+     * Grype inace odbija bazu stariju od 5 dana - VALIDATE_AGE=false to preskace.
+     */
+    private static final Map<String, String> GRYPE_ENV_CLI = Map.of(
             "GRYPE_DB_VALIDATE_AGE", "false",
             "GRYPE_DB_AUTO_UPDATE", "false"
     );
+
+    /** Grype cache (baza) unutar kontejnera - mapiran na imenovani Docker volumen, da prezivi --rm. */
+    private static final String DOCKER_DB_DIR = "/dbcache";
 
     /** Poredak ozbiljnosti - najgore prvo u spremljenom popisu. */
     private static final List<String> SEVERITY_ORDER =
@@ -56,15 +64,28 @@ public class GrypeRunner {
     private final ObjectMapper objectMapper;
     private final String grypePath;
     private final long timeoutSeconds;
+    /** "cli" (lokalna grype binarka) ili "docker" (grype u kontejneru, bez lokalne instalacije). */
+    private final String mode;
+    private final String dockerPath;
+    private final String dockerImage;
+    private final String dockerDbVolume;
 
     public GrypeRunner(SbomEvaluationRepository repository,
                        ObjectMapper objectMapper,
                        @Value("${app.sbom.grype-path:grype}") String grypePath,
-                       @Value("${app.sbom.timeout-seconds:300}") long timeoutSeconds) {
+                       @Value("${app.sbom.timeout-seconds:300}") long timeoutSeconds,
+                       @Value("${app.sbom.mode:cli}") String mode,
+                       @Value("${app.sbom.docker-path:docker}") String dockerPath,
+                       @Value("${app.sbom.docker-image:anchore/grype:latest}") String dockerImage,
+                       @Value("${app.sbom.docker-db-volume:grc-grype-db}") String dockerDbVolume) {
         this.repository = repository;
         this.objectMapper = objectMapper;
         this.grypePath = grypePath;
         this.timeoutSeconds = timeoutSeconds;
+        this.mode = mode;
+        this.dockerPath = dockerPath;
+        this.dockerImage = dockerImage;
+        this.dockerDbVolume = dockerDbVolume;
     }
 
     @Async("sbomExecutor")
@@ -73,18 +94,19 @@ public class GrypeRunner {
             return; // evaluacija je u međuvremenu obrisana
         }
 
-        Path sbomFile = null;
+        Path workDir = null;
         Path outFile = null;
         Path errFile = null;
         try {
-            sbomFile = Files.createTempFile("sbom-", ".json");
+            // Zaseban direktorij (ne samo datoteka): u docker nacinu se mapira kao volumen,
+            // pa u njemu smije stajati samo SBOM, a ne cijeli sistemski temp.
+            workDir = Files.createTempDirectory("sbom-");
+            Path sbomFile = workDir.resolve("sbom.json");
             Files.write(sbomFile, sbomBytes);
             outFile = Files.createTempFile("grype-out-", ".json");
             errFile = Files.createTempFile("grype-err-", ".txt");
 
-            ProcessBuilder pb = new ProcessBuilder(
-                    grypePath, "sbom:" + sbomFile.toAbsolutePath(), "-o", "json");
-            pb.environment().putAll(GRYPE_ENV);
+            ProcessBuilder pb = buildProcess(workDir, sbomFile);
             pb.redirectOutput(outFile.toFile());
             pb.redirectError(errFile.toFile());
 
@@ -109,10 +131,38 @@ public class GrypeRunner {
                     : e.getClass().getSimpleName() + ": " + e.getMessage();
             fail(evaluationId, "Analiza nije uspjela: " + reason);
         } finally {
-            deleteQuietly(sbomFile);
             deleteQuietly(outFile);
             deleteQuietly(errFile);
+            deleteDirQuietly(workDir);
         }
+    }
+
+    /**
+     * Naredba za pokretanje Grypea, ovisno o nacinu.
+     *
+     * CLI: lokalna binarka {@code grype} cita SBOM izravno s diska; bazu ima lokalno.
+     *
+     * DOCKER: {@code docker run --rm} nad slikom {@code anchore/grype}. SBOM ulazi kroz volumen
+     * {@code /work}, a baza (cache) kroz IMENOVANI volumen na {@code /dbcache} - tako prvi put
+     * povuce bazu (treba mreza), a svaki sljedeci put je koristi iz volumena (radi i offline,
+     * jer VALIDATE_AGE=false ne odbija zatecenu bazu). Ne treba lokalna instalacija Grypea.
+     */
+    private ProcessBuilder buildProcess(Path workDir, Path sbomFile) {
+        if ("docker".equalsIgnoreCase(mode)) {
+            List<String> command = List.of(
+                    dockerPath, "run", "--rm",
+                    "-e", "GRYPE_DB_VALIDATE_AGE=false",
+                    "-e", "GRYPE_DB_CACHE_DIR=" + DOCKER_DB_DIR,
+                    "-v", dockerDbVolume + ":" + DOCKER_DB_DIR,
+                    "-v", workDir.toAbsolutePath() + ":/work",
+                    dockerImage,
+                    "sbom:/work/" + sbomFile.getFileName(), "-o", "json");
+            return new ProcessBuilder(command);
+        }
+        ProcessBuilder pb = new ProcessBuilder(
+                grypePath, "sbom:" + sbomFile.toAbsolutePath(), "-o", "json");
+        pb.environment().putAll(GRYPE_ENV_CLI);
+        return pb;
     }
 
     private boolean markRunning(Long evaluationId) {
@@ -236,6 +286,24 @@ public class GrypeRunner {
             Files.deleteIfExists(path);
         } catch (Exception e) {
             log.debug("Nije obrisana privremena datoteka {}", path, e);
+        }
+    }
+
+    /** Obrise privremeni radni direktorij zajedno sa sadrzajem (SBOM datotekom). */
+    private void deleteDirQuietly(Path dir) {
+        if (dir == null) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(dir)) {
+            paths.sorted(Comparator.reverseOrder()).forEach(p -> {
+                try {
+                    Files.deleteIfExists(p);
+                } catch (IOException ignored) {
+                    // najbolji trud; zaostali temp OS ionako pocisti
+                }
+            });
+        } catch (IOException e) {
+            log.debug("Nije obrisan privremeni direktorij {}", dir, e);
         }
     }
 
