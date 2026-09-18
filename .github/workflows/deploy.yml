@@ -1,0 +1,44 @@
+name: build-images
+
+# Gradi i objavljuje backend + frontend slike na GHCR (ghcr.io).
+# Droplet ih poslije samo povlaci - build se NE radi na serveru (premalo RAM-a).
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prijava na GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Backend slika
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/grc-app-backend:latest
+            ghcr.io/${{ github.repository_owner }}/grc-app-backend:${{ github.sha }}
+
+      - name: Frontend slika
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/grc-app-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/grc-app-frontend:${{ github.sha }}
