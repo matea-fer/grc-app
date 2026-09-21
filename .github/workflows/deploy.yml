@@ -1,7 +1,8 @@
-name: build-images
+name: test-and-build
 
-# Gradi i objavljuje backend + frontend slike na GHCR (ghcr.io).
-# Droplet ih poslije samo povlaci - build se NE radi na serveru (premalo RAM-a).
+# Prvo testovi (uz pravu Postgres bazu). Slike (backend + frontend) se grade i objavljuju
+# na GHCR SAMO ako testovi prodju (job "images" ima needs: test). Padnu li testovi, slike se
+# ne objave -> nova verzija se ne moze deployati.
 on:
   push:
     branches: [main]
@@ -13,7 +14,44 @@ permissions:
   packages: write
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Prava Postgres baza za @SpringBootTest / @Transactional testove (nema Testcontainersa).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: grc_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=20
+    env:
+      # Backend cita ove kroz Spring env (application.properties: ${DB_HOST} itd.).
+      # JWT_SECRET nema default pa se MORA postaviti, inace se test-kontekst ne digne.
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: grc_test
+      DB_USER: postgres
+      DB_PASSWORD: testpw
+      JWT_SECRET: ci-tajna-samo-za-testove-dovoljno-duga-1234
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Testovi (core + business, prava baza)
+        working-directory: backend
+        run: chmod +x ./gradlew && ./gradlew --no-daemon clean test
+
   images:
+    needs: test          # <-- gradi se SAMO ako "test" prodje
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
