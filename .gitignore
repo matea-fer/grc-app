@@ -28,6 +28,11 @@ Thumbs.db
 *.env
 !.env.example
 !backend/.env.example
+!.env.prod.example
+!ops/backup.env.example
+
+# ===== Backup dumpovi (lokalne kopije na serveru) =====
+backups/
 
 # ===== Kickoff (lokalno) =====
 projekt.yml
