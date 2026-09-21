@@ -80,3 +80,21 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/grc-app-frontend:latest
             ghcr.io/${{ github.repository_owner }}/grc-app-frontend:${{ github.sha }}
+
+  deploy:
+    needs: images        # <-- deploy SAMO ako su testovi prosli i slike objavljene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy na Droplet (pull + restart)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/grc-app
+            docker compose -f docker-compose.prod.yml --env-file .env pull
+            docker compose -f docker-compose.prod.yml --env-file .env up -d
+            docker image prune -f
+
