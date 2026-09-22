@@ -29,6 +29,7 @@ Thumbs.db
 !.env.example
 !backend/.env.example
 !.env.prod.example
+!.env.staging.example
 !ops/backup.env.example
 
 # ===== Backup dumpovi (lokalne kopije na serveru) =====

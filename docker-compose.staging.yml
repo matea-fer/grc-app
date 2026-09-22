@@ -1,0 +1,49 @@
+# Lokalni STAGING: kopija produkcije za testiranje nadogradnji PRIJE taga (v*).
+# Vrti se na tvom racunalu (Docker Desktop), s KANDIDAT slikama (:edge - gradi ih main)
+# i s prod PODACIMA vracenim iz backupa. Tako nove migracije testiras nad stvarnim
+# podacima, bez ikakvog rizika za produkciju.
+#
+# Redoslijed (detalji u STAGING.md):
+#   1) docker compose -f docker-compose.staging.yml --env-file .env.staging up -d db
+#   2) restore prod dumpa u bazu grc_stage
+#   3) docker compose -f docker-compose.staging.yml --env-file .env.staging up -d
+#      -> otvori http://localhost:${FRONTEND_PORT:-8081}
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - stage-db-data:/var/lib/postgresql/data   # zaseban volumen - ne dira dev ni prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    image: ghcr.io/${GH_OWNER:-matea-fer}/grc-app-backend:${TAG:-edge}
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      SBOM_MODE: cli
+      JAVA_OPTS: ${JAVA_OPTS:--Xmx512m}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: ghcr.io/${GH_OWNER:-matea-fer}/grc-app-frontend:${TAG:-edge}
+    ports:
+      - "${FRONTEND_PORT:-8081}:80"
+    depends_on:
+      - backend
+
+volumes:
+  stage-db-data:
