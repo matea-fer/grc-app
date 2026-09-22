@@ -45,28 +45,28 @@ Jedan stupac u nizu (vidi `ColumnEntry` / `ColumnOptions`):
 | # | Pravilo | Kako |
 |---|---------|------|
 | 1 | **Aditivno** | Samo dodaj element, ne diraj postojeće kolone. |
-| 2 | **Ciljaj po stabilnom imenu** | `WHERE name = '<obrazac>'`, **nikad po `id`** — isti starter obrazac ima kod svakog tenanta drugi `id`; po imenu ih uhvatiš sve. |
+| 2 | **Ciljaj po `template_code`** | `WHERE template_code = '<KOD>'`, **nikad po `id`** (svaki tenant ima svoj) ni po `name` (korisnik ga mijenja). Kod hvata sve tenante i preživljava preimenovanje. |
 | 3 | **Idempotentno** | `AND NOT EXISTS (… col ->> 'key' = '<nova>')`. Pogodi li 0 redaka → **nije greška**. |
 | 4 | **Ne prepisuj** | `definitions = definitions \|\| <element>::jsonb` (dodaj na kraj), nikad `= <cijeli niz>`. |
 
 `definitions || '{...}'::jsonb` nad **nizom** i **objektom** doda objekt kao jedan novi element.
 (Ako je desna strana i sama niz, spoji nizove — zato element mora biti objekt.)
 
-> **`name` NIJE unique** (u shemi je jedino `form_template_pkey` na `id`). To nije propust nego
-> preduvjet: svaki tenant ima **svoj** redak istog starter obrasca (isti `name`, drugi `id`,
-> drugi `company_id`), pa jedan `UPDATE ... WHERE name = '<obrazac>'` namjerno pogodi **sve** kopije.
-> Ciljanje po `id` zakrpalo bi samo jednog tenanta.
+> **Zašto kod, a ne `id` ni `name`:** `id` je per-tenant (svaki tenant ima svoj redak istog
+> starter obrasca — isti kod, drugi `id`, drugi `company_id`), pa bi ciljanje po `id` zakrpalo
+> samo jednog tenanta. `name` nije ni unique (u shemi je jedino `form_template_pkey` na `id`)
+> ni immutable — `PUT /api/templates/{id}` (`TemplateService.rename`) ga mijenja, pa preimenovan
+> obrazac migracija po imenu **ne bi** pogodila.
 >
-> **Ime nije ni immutable:** `PUT /api/templates/{id}` (`TemplateService.rename`) dopušta
-> preimenovanje. Zato je `name` **best-effort sidro**, ne jamstvo — preimenovan obrazac
-> migracija po imenu **neće** pogoditi. Za neobaveznu, aditivnu kolonu to je podnošljivo
-> (idempotentno je, korisnik je doda sam); za obavezan zahvat nije dovoljno.
+> **`template_code`** (uveden u [V13](../../backend/src/main/resources/db/migration/V13__template_code.sql))
+> rješava oboje: nepromjenjiv je iz korisnicke perspektive (rename mijenja `name`, ne `code`),
+> isti je kod svih tenanata za isti starter, i postavlja ga provisioning (Task 4), ne korisnik.
+> Kodovi: `RIZICI`, `SAMOPROCJENA`, `DOBAVLJACI`, `UPRAVLJANJE_IMOVINOM`, `PRODUKTI`, `ZADACI`,
+> `PRODUCT_ASSESSMENT`.
 >
-> **Robusno sidro** je nepromjenjiv, developerski kontroliran `template_code` stupac koji se
-> postavi pri provisioningu starter obrasca i korisnik ga ne dira (rename mijenja `name`, ne
-> `code`). Migracije tada ciljaju `WHERE template_code = 'RIZICI'` i preživljavaju preimenovanje.
-> Taj isti kod je i temelj starter-paketa po tenantu (Task 4). Dok koda nema, kao zakrpu možeš
-> dodati strukturni uvjet: `AND EXISTS (select 1 from jsonb_array_elements(definitions) c where c->>'key'='<poznata_kolona>')`.
+> **Rub:** obrazac koji je korisnik sam napravio (ne iz startera) ima `template_code = NULL` i
+> migracije ga po kodu namjerno ne diraju. Isto vrijedi za starter koji je netko preimenovao
+> prije nego je backfill dodao kod — takav ostane bez koda dok mu ga administrator ne dodijeli.
 
 Ako mijenjaš postojeći element (a ne dodaješ novi), radi to kroz `jsonb_set` po **pronađenom
 indeksu** ključa, ne po fiksnom `-> 0`; i dalje aditivno po smislu (mijenjaš svojstvo, ne rušiš kolonu).
@@ -74,10 +74,24 @@ indeksu** ključa, ne po fiksnom `-> 0`; i dalje aditivno po smislu (mijenjaš s
 Uz izmjenu bumpaj `version = version + 1` (@Version stupac). Aplikacija u trenutku migracije
 još ne poslužuje zahtjeve (Flyway ide pri startu), pa nema utrke s optimističkim zaključavanjem.
 
-## Referentni primjer
+## Kanonski oblik (ciljanje po `template_code`)
 
-`V12__primjer_dodaj_kolonu_napomena.sql` — obrascima `'Rizici'` dodaje neobaveznu kolonu
-`napomena`, samo onima koji je nemaju. Prekopiraj ga i prilagodi ime obrasca i element.
+```sql
+UPDATE public.form_template t
+SET definitions = t.definitions || $json$ { "key": "napomena", "type": "string", ... } $json$::jsonb,
+    version = t.version + 1
+WHERE t.template_code = 'RIZICI'          -- stabilno sidro: hvata sve tenante, prezivljava rename
+  AND t.definitions IS NOT NULL
+  AND NOT EXISTS (                          -- idempotencija
+      SELECT 1 FROM jsonb_array_elements(t.definitions) AS col
+      WHERE col ->> 'key' = 'napomena'
+  );
+```
+
+Cijeli element (svih 10 polja `ColumnEntry` + `options`) je gore u odjeljku „Oblik jednog elementa".
+
+> Povijesna bilješka: prvi primjer (`V12`, ciljao po `name`) bio je demo iz Task 3 i uklonjen je
+> s `main` (čuva se u grani `demo-v12`). Od V13 nadalje ciljaj po `template_code`.
 
 ## Kako se testira PRIJE produkcije (obavezno)
 
@@ -87,7 +101,7 @@ pošten test je: *ruši li ono što su korisnici izgradili?* To radi lokalni sta
 
 1. `main` push → gradi `:edge` slike (bez diranja prod-a).
 2. Staging: `up -d db` → restore zadnjeg prod dumpa → `up -d` (Flyway odvrti **novu** migraciju nad prod podacima).
-3. U backend logu tražiš `Migrating schema … to version "12"` (ili višu) i `Started DemoApplication`.
+3. U backend logu tražiš `Migrating schema … to version "N"` (verzija tvoje nove migracije) i `Started DemoApplication`.
 4. Provjeri **broj pogođenih redaka** i da su postojeće kolone netaknute:
 
 ```bash

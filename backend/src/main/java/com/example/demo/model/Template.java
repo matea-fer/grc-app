@@ -35,6 +35,18 @@ public class Template {
     @Column(nullable = false)
     private String name;
 
+    /**
+     * Stabilan identifikator obrasca kojim ga developer prepoznaje neovisno o imenu.
+     *
+     * Ime ({@link #name}) korisnik mijenja kroz rename; kod se ne mijenja - postavlja se
+     * jednom pri provisioningu starter obrasca i sluzi kao sidro za migracije nad
+     * {@code definitions} i kao odgovor "ima li tenant vec obrazac tipa X" (starter paketi).
+     * Obrasci koje je korisnik sam napravio nemaju kod (null). Namjerno NEMA veze s
+     * {@link #setName}: preimenovanje ne smije pomaknuti kod.
+     */
+    @Column(name = "template_code", length = 64)
+    private String templateCode;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private List<ColumnEntry> definitions = new ArrayList<>();
@@ -60,6 +72,16 @@ public class Template {
         this.name = name;
     }
 
+    /**
+     * Obrazac s dodijeljenim stabilnim kodom - koristi provisioning starter obrazaca (Task 4).
+     * Obican {@code create} kroz API ide kroz konstruktor bez koda: korisnicki obrasci nemaju kod.
+     */
+    public Template(Long companyId, String name, String templateCode) {
+        this.companyId = companyId;
+        this.name = name;
+        this.templateCode = templateCode;
+    }
+
     public Long getId() {
         return id;
     }
@@ -82,6 +104,18 @@ public class Template {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTemplateCode() {
+        return templateCode;
+    }
+
+    /**
+     * Postavlja stabilni kod. Zove ga SAMO provisioning starter obrazaca; rename i ostale
+     * korisnicke izmjene ga ne diraju, jer kod mora prezivjeti preimenovanje.
+     */
+    public void setTemplateCode(String templateCode) {
+        this.templateCode = templateCode;
     }
 
     public List<ColumnEntry> getDefinitions() {
