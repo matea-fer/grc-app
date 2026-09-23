@@ -17,9 +17,19 @@ Na produkciji **korisnici su vlasnici obrazaca** — oni dodaju kolone, spajaju 
 grade svoje forme. `form_template.definitions` je `jsonb` niz `ColumnEntry` objekata i
 sadrži **njihov rad**, ne naš.
 
-Zato dev **nikad** ne smije prepisati taj dokument iz seeda ili koda. Kad promjena
-konfiguracije mora doći od developera (npr. svim tenantima dodati novu standardnu kolonu),
-ona ide kao **Flyway migracija koja krpa jsonb**, a ne kao `UPDATE ... SET definitions = <cijeli niz>`.
+Kad promjena konfiguracije mora doći od developera (npr. svim tenantima dodati novu standardnu
+kolonu), ona ide kao **Flyway migracija koja krpa jsonb**. Da — i to je `UPDATE definitions`;
+razlika nije u tome DIRAŠ li JSON, nego **KAKO**, a to se vidi u **desnoj strani `SET`-a**:
+
+- ✅ **nadopuni** — desna strana **kreće od trenutne vrijednosti**:
+  `SET definitions = definitions || '<novi element>'::jsonb`. Sve što je korisnik dodao ostaje,
+  samo se pridoda novo.
+- ❌ **zamijeni** — desna strana je **gotov, potpun niz koji je dev sastavio**:
+  `SET definitions = '[…cijeli niz…]'::jsonb`. Ignorira što je u bazi i pregazi ga — a dev ionako
+  ne zna sve kolone koje su korisnici dodali na produ, pa bi ih tiho pobrisao.
+
+Pravilo u jednoj rečenici: **desna strana `SET`-a mora spominjati `definitions`** (graditi na
+postojećem), nikad biti kompletan niz koji dev sam napiše.
 
 ## Oblik jednog elementa
 

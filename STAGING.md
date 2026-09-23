@@ -28,9 +28,12 @@ cp .env.staging.example .env.staging
 ```
 
 ## 3. Digni SAMO bazu, pa u nju vrati prod dump
-Bazu prvo (da Flyway ne stvori praznu shemu prije restora):
+Bazu prvo (da Flyway ne stvori praznu shemu prije restora). `--wait` je BITAN: bez njega se
+`up -d` vrati čim kontejner krene, a Postgres na svježem volumenu još radi `initdb` — pa restore
+odmah puca s `psql: connection ... failed: No such file or directory`. `--wait` blokira dok db
+healthcheck ne javi „healthy":
 ```bash
-docker compose -f docker-compose.staging.yml --env-file .env.staging up -d db
+docker compose -f docker-compose.staging.yml --env-file .env.staging up -d --wait db
 ```
 Restore najnovijeg dumpa u `grc_stage`:
 ```bash

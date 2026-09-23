@@ -26,6 +26,7 @@ Thumbs.db
 # ===== Env / tajne =====
 .env
 *.env
+.env.*
 !.env.example
 !backend/.env.example
 !.env.prod.example
